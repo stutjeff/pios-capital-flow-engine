@@ -1,7 +1,13 @@
-name: PIOS Capital Flow Engine V5.3.2 SEC User-Agent
+name: PIOS Market State Engine V6.0.1 Standalone
 
 on:
   workflow_dispatch:
+    inputs:
+      rebuild_analog_library:
+        description: "重建 2000/2008/2011/2015/2018/2020/2022 歷史類比資料庫"
+        required: false
+        default: false
+        type: boolean
 
   schedule:
     # 台北時間 17:18 = UTC 09:18
@@ -11,13 +17,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: pios-capital-flow-engine-v5-3-2
+  group: pios-market-state-engine-v6-standalone
   cancel-in-progress: false
 
 jobs:
-  capital-flow:
+  market-state:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -45,7 +51,38 @@ jobs:
           python provider_regression_test.py
           pytest -q
 
-      - name: Run PIOS Capital Flow Engine
+      - name: Rebuild historical analog library
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.rebuild_analog_library == true }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
+          BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+          NOAA_CDO_TOKEN: ${{ secrets.NOAA_CDO_TOKEN }}
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+
+          EODHD_API_KEY: ${{ secrets.EODHD_API_KEY }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+
+          GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
+          MARKETAUX_API_KEY: ${{ secrets.MARKETAUX_API_KEY }}
+          MEDIASTACK_API_KEY: ${{ secrets.MEDIASTACK_API_KEY }}
+          NYTIMES_API_KEY: ${{ secrets.NYTIMES_API_KEY }}
+
+          OPENAQ_API_KEY: ${{ secrets.OPENAQ_API_KEY }}
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+
+        run: |
+          python build_analog_library.py
+
+      - name: Run PIOS Market State Engine
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -74,76 +111,59 @@ jobs:
         run: |
           python main.py
 
-      - name: Show source diagnostics
+      - name: Show source and state diagnostics
         if: always()
         run: |
-          if [ -f data/source_status.csv ]; then
-            python - <<'PY'
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
           import pandas as pd
 
-          path = "data/source_status.csv"
-          df = pd.read_csv(path)
+          status_path = Path("data/source_status.csv")
 
-          print("========== Source Status ==========")
+          if status_path.exists():
+              df = pd.read_csv(status_path)
 
-          if {"category", "status"}.issubset(df.columns):
-              summary = (
-                  df.groupby(
-                      ["category", "status"],
-                      dropna=False,
-                  )
-                  .size()
-                  .to_string()
-              )
-              print(summary)
-          else:
-              print("source_status.csv 欄位不完整")
-              print(df.columns.tolist())
+              print("========== Source Status ==========")
 
-          issue_statuses = {
-              "ERROR",
-              "NETWORK_ERROR",
-              "SCHEMA_MISMATCH",
-              "INVALID_KEY",
-              "MISSING_KEY",
-              "MISSING_CONFIGURATION",
-              "RATE_LIMIT",
-              "PLAN_NOT_SUPPORTED",
-              "PERMISSION_DENIED",
-              "NO_DATA",
-              "UPSTREAM_ERROR",
-          }
-
-          if "status" in df.columns:
-              issues = df[df["status"].isin(issue_statuses)]
-
-              if not issues.empty:
-                  print("\n========== Provider Issues ==========")
-
-                  show_columns = [
-                      column
-                      for column in [
-                          "source",
-                          "category",
-                          "status",
-                          "error_type",
-                          "http_code",
-                          "detail",
-                      ]
-                      if column in issues.columns
-                  ]
-
+              if {"category", "status"}.issubset(df.columns):
                   print(
-                      issues[show_columns]
-                      .head(50)
-                      .to_string(index=False)
+                      df.groupby(
+                          ["category", "status"],
+                          dropna=False,
+                      )
+                      .size()
+                      .to_string()
                   )
               else:
-                  print("\nNo provider issues.")
+                  print("source_status.csv 欄位不完整")
+                  print(df.columns.tolist())
+          else:
+              print("data/source_status.csv not found")
+
+          decision_path = Path("data/decision.json")
+
+          if decision_path.exists():
+              decision = json.loads(
+                  decision_path.read_text(encoding="utf-8")
+              )
+
+              state = decision.get("state_engine", {})
+
+              print("\n========== Market State ==========")
+              print(
+                  "state:",
+                  state.get("state"),
+                  state.get("state_zh"),
+              )
+              print("risk:", state.get("risk_score"))
+              print("momentum:", state.get("momentum"))
+              print("persistence:", state.get("persistence"))
+              print("breadth:", state.get("breadth"))
+          else:
+              print("data/decision.json not found")
           PY
-          else
-            echo "data/source_status.csv not found"
-          fi
 
       - name: Commit generated data
         if: always()
@@ -156,7 +176,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No data changes"
           else
-            git commit -m "Update capital flow data $(date -u +%F-%H%M)"
+            git commit -m "Update PIOS market state $(date -u +%F-%H%M)"
             git pull --rebase
             git push
           fi
