@@ -1,38 +1,9 @@
-# V5.3.2 Deployment Profile
+# V6 Deployment Profile
 
-## Enabled keyed providers
-- FRED
-- BLS
-- BEA
-- EIA
-- U.S. Census
-- NOAA CDO
-- EODHD
-- Finnhub
-- Alpha Vantage
-- FMP Stable
-- GNews
-- Marketaux
-- Mediastack
-- New York Times (`NYTIMES_API_KEY`)
-- OpenAQ v3
-- J-Quants v2 (`x-api-key`)
-- Telegram
-
-## Enabled public/no-key providers
-- U.S. Treasury Fiscal Data
-- CFTC COT
-- TWSE
-- TDCC
-- BOJ
-- IMF
-- OECD SDMX
-- World Bank
-- DBnomics
-- Eurostat
-- GDELT
-- UN Comtrade
-- Wikimedia Pageviews
-
-## Disabled by design
-Providers needing unconfigured or unsuitable paid credentials remain in separate modules for future activation, but are disabled in YAML and do not affect daily completeness or Telegram diagnostics.
+- Entry point: `main.py`
+- Daily schedule: 17:18 Asia/Taipei (09:18 UTC)
+- Python: 3.12
+- Secrets: same 19 as V5.3.2; no new secret
+- First manual run: set `rebuild_analog_library=true`
+- Rolling windows: market data 180 calendar days; risk/state histories 180 observations maximum
+- External radar fusion: optional JSON snapshots under `data/external/`

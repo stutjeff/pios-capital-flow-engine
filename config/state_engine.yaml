@@ -1,0 +1,31 @@
+version: 1
+risk_thresholds:
+  observe: 15
+  alert: 25
+  risk_off: 35
+  credit_stress: 48
+  liquidity_stress: 60
+  systemic: 75
+persistence_days:
+  observe: 2
+  alert: 3
+  switch_514: 5
+  switch_433: 7
+breadth:
+  warning_pct: 40
+  risk_off_pct: 57
+  systemic_pct: 75
+momentum:
+  accelerating_5d: 4
+  improving_5d: -4
+state_hysteresis:
+  downgrade_days: 3
+  upgrade_days: 2
+historical_analogs:
+  lookback_days: 20
+  minimum_coverage_pct: 55
+  top_n: 3
+fusion:
+  capital_flow_weight: 0.50
+  macro_weight: 0.30
+  news_weight: 0.20

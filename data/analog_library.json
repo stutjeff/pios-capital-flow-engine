@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "built_at": null,
+  "events": [],
+  "status": "Run GitHub Actions manually once with rebuild_analog_library=true"
+}

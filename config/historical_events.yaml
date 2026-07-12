@@ -1,0 +1,30 @@
+version: 1
+events:
+  - id: dotcom_2000
+    label: 2000 科技泡沫
+    start: 2000-02-01
+    end: 2000-06-30
+  - id: gfc_2008
+    label: 2008 全球金融海嘯
+    start: 2008-07-01
+    end: 2008-11-30
+  - id: euro_2011
+    label: 2011 歐債與美債降評
+    start: 2011-06-01
+    end: 2011-10-31
+  - id: china_2015
+    label: 2015 中國與全球製造衝擊
+    start: 2015-06-01
+    end: 2016-02-29
+  - id: q4_2018
+    label: 2018 第四季緊縮衝擊
+    start: 2018-09-01
+    end: 2018-12-31
+  - id: covid_2020
+    label: 2020 疫情流動性危機
+    start: 2020-01-15
+    end: 2020-04-30
+  - id: inflation_2022
+    label: 2022 通膨升息熊市
+    start: 2022-01-01
+    end: 2022-10-31
