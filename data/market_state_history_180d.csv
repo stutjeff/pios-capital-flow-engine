@@ -1,2 +1,2 @@
-date,state,state_zh,risk_score,risk_percentile_180d,breadth_pct,momentum_5d,persistence_alert
-2026-07-12,ROTATION,板塊輪動,19.4,61.5,20.0,0.0,0
+date,state,state_zh,risk_score,risk_percentile_180d,breadth_pct,momentum_5d,persistence_alert,accumulation_score,velocity_5d,state_reason
+2026-07-12,ROTATION,板塊輪動,19.4,61.5,20.0,0.0,0,41.5,-1.26,風險集中於部分板塊，尚未擴散為全面撤退。
