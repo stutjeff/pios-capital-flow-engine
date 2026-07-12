@@ -1,7 +1,7 @@
 {
   "mode": "452",
   "lamp": "🟢",
-  "risk_score": 19.7,
+  "risk_score": 19.4,
   "components": [
     {
       "name": "信用市場",
@@ -40,13 +40,13 @@
     {
       "name": "美元與利率",
       "max": 20,
-      "score": 1.2,
+      "score": 0.9,
       "regime": "正常",
       "parts": [
         {
           "factor": "美元20D",
-          "value": 0.2445268024299896,
-          "risk_points": 0.4890536048599792,
+          "value": 0.11937322008224172,
+          "risk_points": 0.23874644016448343,
           "rule": "正報酬×2"
         },
         {
@@ -108,27 +108,112 @@
   "signal_consistency_pct": 85.7,
   "decision_confidence_pct": 95.0,
   "missing_model_factors": [],
-  "action": "維持正常配置；尚未形成足夠一致的全面撤退證據。",
+  "action": "維持 452；目前以板塊輪動為主，尚未形成廣泛避險。",
   "switch_progress": {
     "514": {
       "risk_target": 30.0,
       "confidence_target": 65.0,
-      "risk_points_needed": 10.3,
+      "risk_points_needed": 10.6,
       "confidence_points_needed": 0,
-      "risk_progress_pct": 65.7,
+      "risk_progress_pct": 64.7,
       "confidence_progress_pct": 100,
       "eligible": false
     },
     "433": {
       "risk_target": 55.0,
       "confidence_target": 70.0,
-      "risk_points_needed": 35.3,
+      "risk_points_needed": 35.6,
       "confidence_points_needed": 0,
-      "risk_progress_pct": 35.8,
+      "risk_progress_pct": 35.3,
       "confidence_progress_pct": 100,
       "eligible": false
     }
   },
-  "version": "5.3.2",
-  "generated_at_taipei": "2026-07-12 09:41:07+0800"
+  "state_policy_action": "維持 452；目前以板塊輪動為主，尚未形成廣泛避險。",
+  "market_state": "ROTATION",
+  "market_state_zh": "板塊輪動",
+  "version": "6.0.1",
+  "generated_at_taipei": "2026-07-12 10:50:06+0800",
+  "state_engine": {
+    "state": "ROTATION",
+    "state_zh": "板塊輪動",
+    "candidate_state": "ROTATION",
+    "candidate_state_zh": "板塊輪動",
+    "risk_score": 19.4,
+    "risk_percentile_180d": 61.5,
+    "risk_rank_180d": 61,
+    "history_count": 156,
+    "momentum": {
+      "1d": 0.7,
+      "3d": 0.7,
+      "5d": 0.0,
+      "slope_5d": -1.26,
+      "slope_10d": 0.8,
+      "label": "震盪"
+    },
+    "persistence": {
+      "above_observe": 6,
+      "above_alert": 0,
+      "above_risk_off": 0,
+      "non_decreasing": 3,
+      "improving": 0
+    },
+    "breadth": {
+      "active_modules": [
+        "risk_asset_score"
+      ],
+      "active_count": 1,
+      "total_modules": 5,
+      "breadth_pct": 20.0
+    },
+    "recent_scores": [
+      11.6,
+      11.7,
+      24.5,
+      6.5,
+      19.4,
+      25.7,
+      18.7,
+      18.6,
+      18.7,
+      19.4
+    ]
+  },
+  "historical_analogs": {
+    "available": true,
+    "reason": "",
+    "matches": [
+      {
+        "id": "dotcom_2000",
+        "label": "2000 科技泡沫",
+        "similarity_pct": 60.9,
+        "trajectory_pct": 57.3,
+        "component_pct": 66.5,
+        "coverage_pct": 100.0,
+        "reference_start": "2000-02-01",
+        "reference_end": "2000-06-30"
+      },
+      {
+        "id": "china_2015",
+        "label": "2015 中國與全球製造衝擊",
+        "similarity_pct": 57.4,
+        "trajectory_pct": 57.4,
+        "component_pct": 57.4,
+        "coverage_pct": 100.0,
+        "reference_start": "2015-06-01",
+        "reference_end": "2016-02-29"
+      },
+      {
+        "id": "gfc_2008",
+        "label": "2008 全球金融海嘯",
+        "similarity_pct": 54.6,
+        "trajectory_pct": 42.3,
+        "component_pct": 73.2,
+        "coverage_pct": 100.0,
+        "reference_start": "2008-07-01",
+        "reference_end": "2008-11-30"
+      }
+    ],
+    "built_at": "2026-07-12T02:48:54.236288Z"
+  }
 }
