@@ -6,4 +6,4 @@
 - Secrets: same 19 as V5.3.2; no new secret
 - First manual run: set `rebuild_analog_library=true`
 - Rolling windows: market data 180 calendar days; risk/state histories 180 observations maximum
-- External radar fusion: optional JSON snapshots under `data/external/`
+- External radar fusion: not enabled in this standalone release.

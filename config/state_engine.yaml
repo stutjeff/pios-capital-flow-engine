@@ -25,7 +25,3 @@ historical_analogs:
   lookback_days: 20
   minimum_coverage_pct: 55
   top_n: 3
-fusion:
-  capital_flow_weight: 0.50
-  macro_weight: 0.30
-  news_weight: 0.20

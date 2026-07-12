@@ -1,4 +1,4 @@
-# PIOS Market State Engine V6.0.0
+# PIOS Market State Engine V6.0.1
 
 V6 延續 V5.3.2 的官方資料 Provider 與 180 天資金流資料層，新增完整市場狀態分析層：
 
@@ -21,12 +21,10 @@ V6 延續 V5.3.2 的官方資料 Provider 與 180 天資金流資料層，新增
 
 歷史類比庫的建立會使用既有 FRED 與行情 API。若個別方案不提供早期行情，該事件會記錄覆蓋率，低覆蓋事件不會被拿來湊相似度。
 
-## 三雷達融合快照
+## 三雷達融合（未啟用）快照
 
 可選擇放入：
 
-- `data/external/macro_radar_latest.json`
-- `data/external/news_radar_latest.json`
 
 最小格式：
 
