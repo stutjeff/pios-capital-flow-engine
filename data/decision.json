@@ -1,0 +1,134 @@
+{
+  "mode": "452",
+  "lamp": "🟢",
+  "risk_score": 19.7,
+  "components": [
+    {
+      "name": "信用市場",
+      "max": 20,
+      "score": 6.9,
+      "regime": "正常",
+      "parts": [
+        {
+          "factor": "HY OAS",
+          "value": 1.8867924528301883,
+          "risk_points": 2.8301886792452824,
+          "rule": "20D 擴大×1.5"
+        },
+        {
+          "factor": "IG OAS",
+          "value": 2.7027027027026973,
+          "risk_points": 4.0540540540540455,
+          "rule": "20D 擴大×1.5"
+        }
+      ]
+    },
+    {
+      "name": "波動率",
+      "max": 15,
+      "score": 1.3,
+      "regime": "正常",
+      "parts": [
+        {
+          "factor": "VIX 180D位置",
+          "value": 8.88888888888889,
+          "risk_points": 1.3333333333333333,
+          "rule": "百分位×0.15"
+        }
+      ]
+    },
+    {
+      "name": "美元與利率",
+      "max": 20,
+      "score": 1.2,
+      "regime": "正常",
+      "parts": [
+        {
+          "factor": "美元20D",
+          "value": 0.2445268024299896,
+          "risk_points": 0.4890536048599792,
+          "rule": "正報酬×2"
+        },
+        {
+          "factor": "10Y殖利率20D",
+          "value": 0.6651884700665134,
+          "risk_points": 0.6651884700665134,
+          "rule": "正變化×1"
+        }
+      ]
+    },
+    {
+      "name": "風險資產撤退",
+      "max": 25,
+      "score": 10.3,
+      "regime": "升溫",
+      "parts": [
+        {
+          "factor": "QQQ20D",
+          "value": -1.68575106714548,
+          "risk_points": 1.348600853716384,
+          "rule": "跌幅×0.8"
+        },
+        {
+          "factor": "SOXX20D",
+          "value": -11.247156531961334,
+          "risk_points": 8.997725225569068,
+          "rule": "跌幅×0.8"
+        },
+        {
+          "factor": "SPY20D",
+          "value": 1.418611211864751,
+          "risk_points": 0.0,
+          "rule": "跌幅×0.8"
+        }
+      ]
+    },
+    {
+      "name": "避險與防禦輪動",
+      "max": 20,
+      "score": 0.0,
+      "regime": "正常",
+      "parts": [
+        {
+          "factor": "黃金20D",
+          "value": -1.9709300813853692,
+          "risk_points": 0.0,
+          "rule": "上漲×0.8"
+        },
+        {
+          "factor": "長債20D",
+          "value": -1.519355696184832,
+          "risk_points": 0.0,
+          "rule": "上漲×0.8"
+        }
+      ]
+    }
+  ],
+  "data_completeness_pct": 100.0,
+  "signal_consistency_pct": 85.7,
+  "decision_confidence_pct": 95.0,
+  "missing_model_factors": [],
+  "action": "維持正常配置；尚未形成足夠一致的全面撤退證據。",
+  "switch_progress": {
+    "514": {
+      "risk_target": 30.0,
+      "confidence_target": 65.0,
+      "risk_points_needed": 10.3,
+      "confidence_points_needed": 0,
+      "risk_progress_pct": 65.7,
+      "confidence_progress_pct": 100,
+      "eligible": false
+    },
+    "433": {
+      "risk_target": 55.0,
+      "confidence_target": 70.0,
+      "risk_points_needed": 35.3,
+      "confidence_points_needed": 0,
+      "risk_progress_pct": 35.8,
+      "confidence_progress_pct": 100,
+      "eligible": false
+    }
+  },
+  "version": "5.3.2",
+  "generated_at_taipei": "2026-07-12 09:41:07+0800"
+}
