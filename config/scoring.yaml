@@ -1,0 +1,6 @@
+version: 1
+window_days: 180
+model_factors: [DXY_PROXY, US_10Y_YIELD, HY_OAS, IG_OAS, VIX, SPY, QQQ, IWM, SOXX, GLD, TLT, EEM, XLF_FINANCIALS]
+thresholds:
+  mode_514: {risk: 30, confidence: 65}
+  mode_433: {risk: 55, confidence: 70}

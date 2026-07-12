@@ -1,0 +1,6 @@
+# Add a new official market-data backend by creating one module in
+# pios/providers/market_backends and adding its registered name here.
+order:
+  - eodhd
+  - fmp
+  - alphavantage

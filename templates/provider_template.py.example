@@ -1,0 +1,12 @@
+from __future__ import annotations
+import pandas as pd
+from pios.providers.base import Provider, ProviderContext
+from pios.providers.registry import register
+from pios.core.models import ProviderStatus
+
+@register('new_source')
+class NewSourceProvider(Provider):
+    def fetch(self, ctx: ProviderContext) -> tuple[pd.DataFrame, list[ProviderStatus]]:
+        # Read self.instance for YAML configuration.
+        # Return a DataFrame with date + factor columns and one or more ProviderStatus rows.
+        raise NotImplementedError
