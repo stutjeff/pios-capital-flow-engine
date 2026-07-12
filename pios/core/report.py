@@ -55,14 +55,6 @@ def _analog_lines(d):
     return out
 
 
-def _fusion_lines(d):
-    f=d.get('radar_fusion',{}); inputs=f.get('inputs',{})
-    out=[f"融合分數 {f.get('fused_score','--')}/100｜可用：{','.join(f.get('available_radars',[]))}"]
-    for key,label in [('capital_flow','資金流'),('macro','宏觀'),('news','新聞')]:
-        item=inputs.get(key)
-        out.append(f"- {label}：{item['score']:.1f}（信心 {item['confidence']:.0f}%）" if item else f"- {label}：尚未接入快照")
-    return out
-
 
 def telegram_message(version,generated,d,a,statuses,history_rows,risk_history):
     inflow,outflow=ranked_rotation(a,limit=5); paths=flow_map(a,limit=3)
@@ -90,7 +82,7 @@ def telegram_message(version,generated,d,a,statuses,history_rows,risk_history):
         if r.empty:continue
         x=r.iloc[0]
         if pd.notna(x.percentile_180d):lines.append(f"- {x.label}：{x.percentile_180d:.0f}%｜20D {_fmt(x.change_20d_pct)}｜強度 {x.strength_20d_pctile:.0f}% {_stars(x.strength_stars_20d)}｜{x.trend_phase}")
-    lines += ["","【歷史相似度】",*_analog_lines(d),"","【三雷達融合】",*_fusion_lines(d)]
+    lines += ["","【歷史相似度】",*_analog_lines(d)]
     anomalies=a[pd.to_numeric(a.zscore_180d,errors='coerce').abs()>=2]
     lines += ["","【180天事件時間軸】"]
     if anomalies.empty:lines.append("目前沒有 |Z|≥2 的異常事件。")

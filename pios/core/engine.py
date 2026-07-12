@@ -12,13 +12,12 @@ from .scoring import analyze,decision
 from .risk_history import build_risk_history,merge_risk_history
 from .state_engine import evaluate_state,apply_os_policy
 from .analogs import compare as compare_analogs
-from .fusion import fuse
 from .report import telegram_message
 from .telegram import send
 from pios.providers.base import ProviderContext
 from pios.providers.registry import discover,create
 
-VERSION='6.0.0'
+VERSION='6.0.1'
 DATA=Path('data')
 TS=DATA/'capital_flow_timeseries_180d.csv'
 STATUS=DATA/'source_status.csv'
@@ -125,7 +124,7 @@ def _append_state_history(state_data:dict,generated_at:str)->pd.DataFrame:
 
 
 def run():
-    DATA.mkdir(exist_ok=True); (DATA/'external').mkdir(exist_ok=True)
+    DATA.mkdir(exist_ok=True)
     RUNLOG.write_text('',encoding='utf-8'); log(f'PIOS Market State Engine V{VERSION}')
     ts,statuses=collect(); log(f'Collected timeseries rows={len(ts)}')
     a=analyze(ts); base=decision(a)
@@ -135,8 +134,7 @@ def run():
     state_data=evaluate_state(rh,_previous_state())
     d=apply_os_policy(base,state_data)
     analogs=compare_analogs(rh,ANALOG_LIBRARY)
-    fusion=fuse(d['risk_score'],d['decision_confidence_pct'],DATA)
-    d.update({'version':VERSION,'generated_at_taipei':generated,'state_engine':state_data,'historical_analogs':analogs,'radar_fusion':fusion})
+    d.update({'version':VERSION,'generated_at_taipei':generated,'state_engine':state_data,'historical_analogs':analogs})
     sh=_append_state_history(state_data,generated)
     ts.to_csv(TS,index=False)
     statuses_to_frame(statuses).to_csv(STATUS,index=False)
