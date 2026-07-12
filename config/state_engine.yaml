@@ -1,4 +1,4 @@
-version: 1
+version: 2
 risk_thresholds:
   observe: 15
   alert: 25
@@ -25,3 +25,4 @@ historical_analogs:
   lookback_days: 20
   minimum_coverage_pct: 55
   top_n: 3
+  next_stage_horizon_days: 10

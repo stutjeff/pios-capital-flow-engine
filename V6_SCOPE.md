@@ -1,20 +1,20 @@
-# PIOS Market State Engine V6.0.1 Scope
+# V6.5 Scope
 
-This release upgrades the capital-flow radar only.
+本版本僅升級資金流主雷達，不合併宏觀雷達與焦點新聞雷達。
 
-Included:
-- Risk momentum
-- Persistence
-- Breadth
-- Market-state machine
-- Historical analog library
-- OS 3.1.1 decision policy
-- 180-day risk and state history
+包含：
+- 風險速度與加速度
+- 風險累積度
+- 持續性趨勢
+- 廣度與模組明細
+- 市場狀態機與遲滯
+- 狀態判斷依據與未升級原因
+- 歷史事件 Day N 定位
+- 參考事件後續階段
+- OS 3.1.1 決策
 
-Not included:
-- Macro radar ingestion
-- News radar ingestion
-- Three-radar weighted score
-- Cross-radar orchestration
-
-Those integrations are reserved for a later project phase.
+不包含：
+- 三雷達共同排程
+- 三雷達總分
+- 宏觀雷達資料讀取
+- 新聞雷達資料讀取

@@ -1,9 +1,10 @@
-# V6 Deployment Profile
+# Deployment Profile — V6.5.0 Standalone
 
-- Entry point: `main.py`
-- Daily schedule: 17:18 Asia/Taipei (09:18 UTC)
-- Python: 3.12
-- Secrets: same 19 as V5.3.2; no new secret
-- First manual run: set `rebuild_analog_library=true`
-- Rolling windows: market data 180 calendar days; risk/state histories 180 observations maximum
-- External radar fusion: not enabled in this standalone release.
+- Scope: 資金流主雷達獨立版
+- External radar fusion: 不包含
+- Schedule: 台北時間每日 17:18
+- Workflow input: `rebuild_analog_library`
+- Secrets: 19 個，沿用 V5.3.2
+- Analog schema: v2（完整軌跡、每日構成、Day N 定位、後續階段）
+- History retention: 最新 180 個日曆日
+- Telegram: 單一資金流主雷達報告

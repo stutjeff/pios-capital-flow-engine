@@ -17,7 +17,7 @@ from .telegram import send
 from pios.providers.base import ProviderContext
 from pios.providers.registry import discover,create
 
-VERSION='6.0.1'
+VERSION='6.5.0'
 DATA=Path('data')
 TS=DATA/'capital_flow_timeseries_180d.csv'
 STATUS=DATA/'source_status.csv'
@@ -112,6 +112,9 @@ def _append_state_history(state_data:dict,generated_at:str)->pd.DataFrame:
         'breadth_pct':state_data.get('breadth',{}).get('breadth_pct'),
         'momentum_5d':state_data.get('momentum',{}).get('5d'),
         'persistence_alert':state_data.get('persistence',{}).get('above_alert'),
+        'accumulation_score':state_data.get('accumulation_score'),
+        'velocity_5d':state_data.get('velocity',{}).get('daily_velocity_5d'),
+        'state_reason':state_data.get('reasons',{}).get('summary'),
     }
     new=pd.DataFrame([row])
     if STATE_HISTORY.exists():
