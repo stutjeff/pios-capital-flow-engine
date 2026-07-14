@@ -1,24 +1,24 @@
 {
   "mode": "452",
   "lamp": "🟢",
-  "risk_score": 9.3,
+  "risk_score": 13.0,
   "components": [
     {
       "name": "信用市場",
       "max": 20,
-      "score": 4.1,
+      "score": 2.0,
       "regime": "正常",
       "parts": [
         {
           "factor": "HY OAS",
-          "value": -0.36900369003689537,
+          "value": -2.1739130434782483,
           "risk_points": 0.0,
           "rule": "20D 擴大×1.5"
         },
         {
           "factor": "IG OAS",
-          "value": 2.7027027027026973,
-          "risk_points": 4.0540540540540455,
+          "value": 1.333333333333342,
+          "risk_points": 2.000000000000013,
           "rule": "20D 擴大×1.5"
         }
       ]
@@ -40,19 +40,19 @@
     {
       "name": "美元與利率",
       "max": 20,
-      "score": 0.9,
+      "score": 2.9,
       "regime": "正常",
       "parts": [
         {
           "factor": "美元20D",
-          "value": -0.301515341761438,
+          "value": -0.594504661812667,
           "risk_points": 0,
           "rule": "正報酬×2"
         },
         {
           "factor": "10Y殖利率20D",
-          "value": 0.8888888888888946,
-          "risk_points": 0.8888888888888946,
+          "value": 2.947845804988658,
+          "risk_points": 2.947845804988658,
           "rule": "正變化×1"
         }
       ]
@@ -60,24 +60,24 @@
     {
       "name": "風險資產撤退",
       "max": 25,
-      "score": 2.9,
+      "score": 6.4,
       "regime": "正常",
       "parts": [
         {
           "factor": "QQQ20D",
-          "value": 1.661879072374406,
+          "value": 0.15760884861106828,
           "risk_points": 0.0,
           "rule": "跌幅×0.8"
         },
         {
           "factor": "SOXX20D",
-          "value": -3.654352906080638,
-          "risk_points": 2.9234823248645103,
+          "value": -7.961762261014127,
+          "risk_points": 6.369409808811302,
           "rule": "跌幅×0.8"
         },
         {
           "factor": "SPY20D",
-          "value": 2.913111044466854,
+          "value": 2.172549233538801,
           "risk_points": 0.0,
           "rule": "跌幅×0.8"
         }
@@ -86,18 +86,18 @@
     {
       "name": "避險與防禦輪動",
       "max": 20,
-      "score": 0.0,
+      "score": 0.3,
       "regime": "正常",
       "parts": [
         {
           "factor": "黃金20D",
-          "value": -0.08215838015477317,
-          "risk_points": 0.0,
+          "value": 0.3306733712286736,
+          "risk_points": 0.26453869698293886,
           "rule": "上漲×0.8"
         },
         {
           "factor": "長債20D",
-          "value": -1.645032532707369,
+          "value": -3.547614535054011,
           "risk_points": 0.0,
           "rule": "上漲×0.8"
         }
@@ -105,26 +105,26 @@
     }
   ],
   "data_completeness_pct": 100.0,
-  "signal_consistency_pct": 64.3,
-  "decision_confidence_pct": 87.5,
+  "signal_consistency_pct": 71.4,
+  "decision_confidence_pct": 90.0,
   "missing_model_factors": [],
   "action": "維持 452；目前以板塊輪動為主，尚未形成廣泛避險。",
   "switch_progress": {
     "514": {
       "risk_target": 30.0,
       "confidence_target": 65.0,
-      "risk_points_needed": 20.7,
+      "risk_points_needed": 17.0,
       "confidence_points_needed": 0,
-      "risk_progress_pct": 31.0,
+      "risk_progress_pct": 43.3,
       "confidence_progress_pct": 100,
       "eligible": false
     },
     "433": {
       "risk_target": 55.0,
       "confidence_target": 70.0,
-      "risk_points_needed": 45.7,
+      "risk_points_needed": 42.0,
       "confidence_points_needed": 0,
-      "risk_progress_pct": 16.9,
+      "risk_progress_pct": 23.6,
       "confidence_progress_pct": 100,
       "eligible": false
     }
@@ -133,45 +133,45 @@
   "market_state": "ROTATION",
   "market_state_zh": "板塊輪動",
   "version": "6.5.0",
-  "generated_at_taipei": "2026-07-13 20:18:38+0800",
+  "generated_at_taipei": "2026-07-14 18:57:30+0800",
   "state_engine": {
     "state": "ROTATION",
     "state_zh": "板塊輪動",
     "candidate_state": "NORMAL",
     "candidate_state_zh": "正常",
     "previous_state": "ROTATION",
-    "transition_note": "降級需連續改善 3 天，目前僅 1 天",
-    "risk_score": 9.3,
-    "risk_percentile_180d": 31.8,
-    "risk_rank_180d": 108,
-    "history_count": 157,
-    "accumulation_score": 11.1,
+    "transition_note": "降級需連續改善 3 天，目前僅 2 天",
+    "risk_score": 13.0,
+    "risk_percentile_180d": 46.8,
+    "risk_rank_180d": 85,
+    "history_count": 158,
+    "accumulation_score": 16.4,
     "momentum": {
-      "1d": -10.1,
-      "3d": -9.3,
-      "5d": -16.4,
-      "slope_5d": -1.8,
-      "slope_10d": -0.03,
+      "1d": -0.1,
+      "3d": -5.6,
+      "5d": -5.7,
+      "slope_5d": -1.67,
+      "slope_10d": -0.49,
       "label": "持續改善"
     },
     "velocity": {
-      "daily_velocity_3d": -4.7,
-      "daily_velocity_5d": -1.8,
-      "daily_velocity_10d": -0.03,
-      "acceleration": -4.67,
-      "positive_days_5": 2,
+      "daily_velocity_3d": -3.2,
+      "daily_velocity_5d": -1.67,
+      "daily_velocity_10d": -0.49,
+      "acceleration": -2.71,
+      "positive_days_5": 1,
       "non_decline_days_7": 5,
-      "range_7d": 16.4,
-      "off_30d_peak": -16.4,
+      "range_7d": 13.4,
+      "off_30d_peak": -13.4,
       "label": "快速改善"
     },
     "persistence": {
       "above_observe": 0,
       "above_alert": 0,
       "above_risk_off": 0,
-      "non_decreasing": 0,
+      "non_decreasing": 1,
       "strictly_rising": 0,
-      "improving": 1
+      "improving": 2
     },
     "breadth": {
       "active_modules": [],
@@ -182,9 +182,9 @@
         {
           "column": "credit_score",
           "label": "信用市場",
-          "score": 4.1,
+          "score": 2.0,
           "max": 20.0,
-          "ratio_pct": 20.5,
+          "ratio_pct": 10.0,
           "active": false
         },
         {
@@ -198,25 +198,25 @@
         {
           "column": "dollar_rates_score",
           "label": "美元與利率",
-          "score": 0.9,
+          "score": 2.9,
           "max": 20.0,
-          "ratio_pct": 4.5,
+          "ratio_pct": 14.5,
           "active": false
         },
         {
           "column": "risk_asset_score",
           "label": "風險資產撤退",
-          "score": 2.9,
+          "score": 6.4,
           "max": 25.0,
-          "ratio_pct": 11.6,
+          "ratio_pct": 25.6,
           "active": false
         },
         {
           "column": "defensive_score",
           "label": "避險與防禦輪動",
-          "score": 0.0,
+          "score": 0.3,
           "max": 20.0,
-          "ratio_pct": 0.0,
+          "ratio_pct": 1.5,
           "active": false
         }
       ]
@@ -233,16 +233,16 @@
       ]
     },
     "recent_scores": [
-      11.7,
       24.5,
       6.5,
       19.4,
-      25.7,
+      26.4,
       18.7,
       18.6,
-      18.7,
+      18.6,
       19.4,
-      9.3
+      13.1,
+      13.0
     ]
   },
   "historical_analogs": {
