@@ -184,7 +184,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 只提交 data 資料夾，避免把程式碼或測試暫存檔誤提交
+          # 只提交 data 資料夾，避免把程式碼、快取或測試暫存檔一起提交
           git add -A data/
 
           if git diff --cached --quiet; then
@@ -194,15 +194,5 @@ jobs:
 
           git commit -m "Update PIOS market state $(date -u +%F-%H%M)"
 
-          # 清理可能殘留的未追蹤快取，避免 rebase 因工作目錄不乾淨而失敗
-          git clean -fd \
-            -e data/ \
-            -e .github/ \
-            -e config/ \
-            -e pios/ \
-            -e templates/ \
-            -e tests/
-
-          git fetch origin main
-          git rebase origin/main
+          # 不再執行 pull/rebase，避免 __pycache__ 或其他未暫存變更阻擋收尾
           git push origin HEAD:main
