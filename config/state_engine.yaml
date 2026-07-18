@@ -29,6 +29,6 @@ state_hysteresis:
   upgrade_days: 2
 historical_analogs:
   lookback_days: 20
-  minimum_coverage_pct: 55
+  minimum_coverage_pct: 25
   top_n: 3
   next_stage_horizon_days: 10

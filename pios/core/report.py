@@ -108,18 +108,25 @@ def _one_line(decision, analysis):
 def _session_lines(decision):
     layers=decision.get('time_layers',{})
     latest=layers.get('latest_session',{})
+    info=layers.get('session_info',{})
     out=[]
-    for title,key in (("昨夜美股","us_previous_close"),("今日亞洲","asia_current_close")):
+    for title,key,session in (("最近美股","us_previous_close","US_CLOSE"),("最近亞洲","asia_current_close","ASIA_CLOSE")):
         items=latest.get(key,[])
+        session_meta=info.get(session,{})
+        market_date=session_meta.get('latest_market_date') or '日期未知'
+        note=session_meta.get('session_note','')
         if not items:
-            out.append(f"{title}：本地資料不足或尚未更新")
+            out.append(f"{title}（{market_date}）：本地資料不足或尚未更新")
             continue
+        out.append(f"{title}（{market_date}｜{note}）")
         weakest=items[:3]
         strongest=list(reversed(items[-2:]))
         weak='、'.join(f"{x['label']} {x['change_pct']:+.1f}%" for x in weakest)
         strong='、'.join(f"{x['label']} {x['change_pct']:+.1f}%" for x in strongest)
-        out.append(f"{title}弱勢：{weak}")
-        out.append(f"{title}相對強勢：{strong}")
+        out.append(f"弱勢：{weak}")
+        out.append(f"相對強勢：{strong}")
+    if any(v.get('no_new_session') for v in info.values()):
+        out.append("休市提醒：本次沒有新交易時段者只展示最近有效收盤，不視為新的0.0%訊號。")
     return out
 
 
@@ -141,7 +148,14 @@ def _freshness_lines(analysis):
 def _analog_lines(decision):
     analogs = decision.get("historical_analogs", {})
     if not analogs.get("available"):
-        return [f"尚未取得可用類比：{analogs.get('reason', '未知')}（可手動重建 analog library）"]
+        reason=analogs.get('reason_zh') or analogs.get('reason','未知')
+        diagnostics=analogs.get('diagnostics',{})
+        built=diagnostics.get('built_events',0)
+        usable=diagnostics.get('usable_events',0)
+        text=f"尚未取得可用類比：{reason}（類比庫已建 {built}，可比 {usable}）"
+        if analogs.get('rebuild_recommended'):
+            text += "；建議手動重建一次"
+        return [text]
     output = []
     for index, match in enumerate(analogs.get("matches", []), 1):
         phase = f"Day {match.get('phase_day')}" if match.get("phase_day") else "階段未知"

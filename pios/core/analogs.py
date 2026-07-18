@@ -132,68 +132,106 @@ def _next_stage(event: dict[str, Any], phase_index: int | None, horizon: int = 1
 def compare(history: pd.DataFrame, library_path: Path) -> dict[str, Any]:
     cfg = load_yaml("state_engine.yaml").get("historical_analogs", {})
     lookback = int(cfg.get("lookback_days", 20))
-    minimum_coverage = float(cfg.get("minimum_coverage_pct", 55))
+    minimum_coverage = float(cfg.get("minimum_coverage_pct", 25))
     top_n = int(cfg.get("top_n", 3))
     next_horizon = int(cfg.get("next_stage_horizon_days", 10))
 
     if not library_path.exists():
-        return {"available": False, "reason": "analog library not built", "matches": []}
+        return {"available": False, "reason": "analog library not built", "reason_zh":"類比庫不存在", "matches": [], "rebuild_recommended":True}
     try:
         library = json.loads(library_path.read_text(encoding="utf-8"))
     except Exception as exc:
-        return {"available": False, "reason": f"invalid library: {exc}", "matches": []}
+        return {"available": False, "reason": f"invalid library: {exc}", "reason_zh":"類比庫格式損壞", "matches": [], "rebuild_recommended":True}
     if history.empty:
-        return {"available": False, "reason": "risk history empty", "matches": []}
+        return {"available": False, "reason": "risk history empty", "reason_zh":"目前風險歷史為空", "matches": [], "rebuild_recommended":False}
+
+    events=library.get("events", [])
+    built_events=sum(1 for e in events if e.get('status') in {'OK','PARTIAL'})
+    usable_events=sum(1 for e in events if len(e.get('risk_trajectory',[]) or [])>=5)
+    diagnostics={
+        'library_version':library.get('version'), 'total_events':len(events),
+        'built_events':built_events, 'usable_events':usable_events,
+        'event_statuses':{str(e.get('id')):str(e.get('status','UNKNOWN')) for e in events},
+    }
 
     latest = history.iloc[-1]
     current = pd.to_numeric(history["risk_score"], errors="coerce").dropna().tail(lookback).values
     matches: list[dict[str, Any]] = []
+    rejected=[]
 
-    for event in library.get("events", []):
+    for event in events:
+        if len(event.get('risk_trajectory',[]) or []) < 5:
+            rejected.append({'id':event.get('id'),'reason':'NO_TRAJECTORY'})
+            continue
         phase = _best_phase(current, event, lookback)
         trajectory_score = phase.get("trajectory_pct")
         profile = event.get("component_profile", {})
-
-        # When the library has daily component series, use the profile around the matched phase.
         phase_index = phase.get("phase_index")
         component_series = event.get("component_series", {})
         if phase_index is not None and component_series:
             dynamic_profile = {}
             for column in VECTOR_COLS[1:]:
                 series = component_series.get(column, [])
-                if phase_index < len(series):
+                if phase_index < len(series) and series[phase_index] is not None:
                     dynamic_profile[column] = series[phase_index]
             if dynamic_profile:
                 profile = dynamic_profile
 
-        component_score, coverage = _component_similarity(latest, profile)
-        if pd.isna(trajectory_score) and pd.isna(component_score):
+        component_score, component_coverage = _component_similarity(latest, profile)
+        trajectory_available=pd.notna(trajectory_score)
+        component_available=pd.notna(component_score)
+        if not trajectory_available and not component_available:
+            rejected.append({'id':event.get('id'),'reason':'NO_COMPARABLE_FEATURE'})
             continue
-        score = (0 if pd.isna(trajectory_score) else trajectory_score) * 0.65 + (0 if pd.isna(component_score) else component_score) * 0.35
-        total_coverage = min(100.0, (coverage + float(event.get("coverage_pct", 0))) / 2)
+
+        # Adaptive weighting: trajectory alone is allowed when old component data is
+        # unavailable. It is explicitly labelled lower confidence rather than discarded.
+        if trajectory_available and component_available:
+            score=float(trajectory_score)*0.65+float(component_score)*0.35
+            comparison_mode='TRAJECTORY_AND_COMPONENTS'
+        elif trajectory_available:
+            score=float(trajectory_score)
+            comparison_mode='TRAJECTORY_ONLY'
+        else:
+            score=float(component_score)
+            comparison_mode='COMPONENTS_ONLY'
+
+        event_coverage=float(event.get('coverage_pct',0) or 0)
+        trajectory_coverage=min(100.0, len(event.get('risk_trajectory',[]))/max(5,lookback)*100)
+        total_coverage=(trajectory_coverage*0.6 + component_coverage*0.25 + event_coverage*0.15)
         if total_coverage < minimum_coverage:
+            rejected.append({'id':event.get('id'),'reason':'LOW_COVERAGE','coverage_pct':round(total_coverage,1)})
             continue
 
         next_stage = _next_stage(event, phase_index, next_horizon)
         matches.append({
-            "id": event.get("id"),
-            "label": event.get("label"),
+            "id": event.get("id"), "label": event.get("label"),
             "similarity_pct": round(score, 1),
-            "trajectory_pct": round(trajectory_score, 1) if pd.notna(trajectory_score) else None,
-            "component_pct": round(component_score, 1) if pd.notna(component_score) else None,
+            "trajectory_pct": round(float(trajectory_score), 1) if trajectory_available else None,
+            "component_pct": round(float(component_score), 1) if component_available else None,
             "coverage_pct": round(total_coverage, 1),
-            "reference_start": event.get("start"),
-            "reference_end": event.get("end"),
-            "phase_day": phase.get("phase_day"),
-            "phase_date": phase.get("phase_date"),
+            "comparison_mode":comparison_mode,
+            "reference_start": event.get("start"), "reference_end": event.get("end"),
+            "phase_day": phase.get("phase_day"), "phase_date": phase.get("phase_date"),
             "next_stage": next_stage,
         })
 
     matches.sort(key=lambda x: x["similarity_pct"], reverse=True)
+    diagnostics['rejected']=rejected
+    if matches:
+        reason=''; reason_zh=''; rebuild=False
+    elif usable_events==0:
+        reason='library built but no usable historical trajectory'
+        reason_zh='類比庫已執行，但歷史資料源沒有產生足夠的可比風險軌跡'
+        rebuild=False
+    else:
+        reason='no match meets adaptive coverage'
+        reason_zh='已有歷史軌跡，但目前樣本與可用欄位仍不足以形成可靠類比'
+        rebuild=False
     return {
-        "available": bool(matches),
-        "reason": "" if matches else "no match meets coverage",
-        "matches": matches[:top_n],
-        "built_at": library.get("built_at"),
-        "library_version": library.get("version"),
+        "available": bool(matches), "reason":reason, "reason_zh":reason_zh,
+        "matches": matches[:top_n], "built_at": library.get("built_at"),
+        "library_version": library.get("version"), "diagnostics":diagnostics,
+        "rebuild_recommended":rebuild,
     }
+

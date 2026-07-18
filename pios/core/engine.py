@@ -17,7 +17,7 @@ from .telegram import send
 from pios.providers.base import ProviderContext
 from pios.providers.registry import discover,create
 
-VERSION='6.6.0'
+VERSION='6.6.1'
 DATA=Path('data')
 TS=DATA/'capital_flow_timeseries_180d.csv'
 STATUS=DATA/'source_status.csv'

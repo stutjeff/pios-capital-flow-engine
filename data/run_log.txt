@@ -1,3 +1,3 @@
-PIOS Market State Engine V6.6.0
+PIOS Market State Engine V6.5.0
 Collected timeseries rows=180
 Telegram: SENT

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from datetime import datetime, timedelta, timezone
 from .config import load_yaml
 import numpy as np
 import pandas as pd
@@ -112,7 +113,16 @@ def analyze(ts: pd.DataFrame, metadata: dict[str,dict] | None = None) -> pd.Data
     dates=pd.to_datetime(ts.get("date"),errors="coerce")
     for col in ts.columns:
         if col=="date": continue
+        meta=metadata.get(col,{})
         raw=pd.to_numeric(ts[col],errors="coerce")
+        # The rolling store is calendar-daily and forward-fills weekends/holidays.
+        # Trim every market series to its actual provider latest_date before calculating
+        # 1D/5D/20D returns, otherwise a Saturday run incorrectly prints +0.0%.
+        latest_date_text=str(meta.get("latest_date","") or "")[:10]
+        if latest_date_text:
+            latest_ts=pd.to_datetime(latest_date_text,errors="coerce")
+            if pd.notna(latest_ts):
+                raw=raw.where(dates<=latest_ts)
         valid=raw.dropna(); z=zscore_series(raw)
         latest_z=float(z.dropna().iloc[-1]) if not z.dropna().empty else float("nan")
         events=z.abs()>=2
@@ -124,7 +134,6 @@ def analyze(ts: pd.DataFrame, metadata: dict[str,dict] | None = None) -> pd.Data
         c1,c5,c20,c60,c120=[pct_change(raw,n) for n in (1,5,20,60,120)]
         s5,s20,s60,s120=[absolute_strength_percentile(raw,n) for n in (5,20,60,120)]
         event_meta=_event_metadata(z,dates)
-        meta=metadata.get(col,{})
         lag=meta.get("data_lag_hours")
         freshness="UNKNOWN" if lag is None else "FRESH" if float(lag)<=36 else "STALE" if float(lag)<=72 else "VERY_STALE"
         rows.append({
@@ -282,19 +291,56 @@ def _row_dict(a:pd.DataFrame,factor:str)->dict[str,Any]|None:
 def build_time_layers(a:pd.DataFrame)->dict[str,Any]:
     asia_factors=['TW_LARGE_CAP','TW_TECH','TW_SEMICONDUCTOR','JP_TOPIX','JP_NIKKEI','JP_BANKS','CN_CSI300','CN_CHINEXT','HK_HSI','HK_TECH']
     us_factors=['SPY','QQQ','SOXX','XLF_FINANCIALS','XLE_ENERGY','XLP_STAPLES']
+    taipei=timezone(timedelta(hours=8))
+    today=datetime.now(taipei).date()
+
     def items(factors,field):
         out=[]
         for f in factors:
             row=_row_dict(a,f)
             if row and row.get(field) is not None:
-                out.append({"factor":f,"label":row.get('label'),"change_pct":round(float(row[field]),2),"latest_date":row.get('latest_date'),"freshness":row.get('freshness_state'),"lag_hours":row.get('data_lag_hours')})
+                out.append({
+                    "factor":f,"label":row.get('label'),"change_pct":round(float(row[field]),2),
+                    "latest_date":row.get('latest_date'),"freshness":row.get('freshness_state'),
+                    "lag_hours":row.get('data_lag_hours'),"market_session":row.get('market_session'),
+                })
         return sorted(out,key=lambda x:x['change_pct'])
+
+    def session_info(items_list, session):
+        dates=[]
+        for x in items_list:
+            d=pd.to_datetime(x.get('latest_date'),errors='coerce')
+            if pd.notna(d): dates.append(d.date())
+        latest=max(dates) if dates else None
+        # At the 17:18 scheduled run, Asia should normally have today's close. US_CLOSE
+        # naturally refers to the latest completed US session. Weekends/holidays are
+        # explicitly labelled as carried-forward sessions, never as a new 0.0% move.
+        no_new=False
+        if latest is None:
+            no_new=True
+        elif session=='ASIA_CLOSE':
+            no_new=latest < today
+        else:
+            expected=today-timedelta(days=1)
+            while expected.weekday()>=5:
+                expected-=timedelta(days=1)
+            no_new=latest < expected or today.weekday()>=5
+        return {
+            'latest_market_date':str(latest) if latest else '',
+            'run_date':str(today),
+            'no_new_session':bool(no_new),
+            'session_note':('非交易日或尚無新收盤，沿用最近有效交易日' if no_new else '最新完成交易時段'),
+        }
+
+    us=items(us_factors,'change_1d_pct')
+    asia=items(asia_factors,'change_1d_pct')
     return {
-        'latest_session':{'us_previous_close':items(us_factors,'change_1d_pct'),'asia_current_close':items(asia_factors,'change_1d_pct')},
+        'latest_session':{'us_previous_close':us,'asia_current_close':asia},
+        'session_info':{'US_CLOSE':session_info(us,'US_CLOSE'),'ASIA_CLOSE':session_info(asia,'ASIA_CLOSE')},
         'short_term_5d':items(us_factors+asia_factors,'change_5d_pct'),
         'rotation_20d':items(list(ROTATION_FACTORS.values()),'change_20d_pct'),
         'medium_term_60d':items(list(ROTATION_FACTORS.values()),'change_60d_pct'),
-        'definition':{'1d':'最近可得交易時段','5d':'短期','20d':'輪動代理','60d':'中期結構'},
+        'definition':{'1d':'最近有效交易時段，不把週末/休市日視為0%','5d':'短期','20d':'輪動代理','60d':'中期結構'},
     }
 
 
