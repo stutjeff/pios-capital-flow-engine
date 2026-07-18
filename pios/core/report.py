@@ -5,11 +5,14 @@ import pandas as pd
 from .scoring import flow_map, ranked_rotation
 
 IMPORTANT_POSITIONS = ["DXY_PROXY", "US_10Y_YIELD", "HY_OAS", "VIX", "QQQ", "SOXX", "GLD", "TLT"]
-STATE_ICON = {"NORMAL": "🟢", "ROTATION": "🔵", "RISK_OFF": "🟡", "CREDIT_STRESS": "🟠", "LIQUIDITY_STRESS": "🔴", "SYSTEMIC": "🚨"}
+STATE_ICON = {
+    "NORMAL": "🟢", "ROTATION": "🔵", "AGGRESSIVE_ROTATION": "🟠",
+    "RISK_OFF": "🟡", "CREDIT_STRESS": "🟠", "LIQUIDITY_STRESS": "🔴", "SYSTEMIC": "🚨",
+}
 
 
 def _fmt(value):
-    return "資料不足" if pd.isna(value) else f"{value:+.1f}%"
+    return "資料不足" if pd.isna(value) else f"{float(value):+.1f}%"
 
 
 def _stars(number: int) -> str:
@@ -37,7 +40,6 @@ def _rotation_lines(items):
 
 def _state_summary(decision):
     state = decision.get("state_engine", {})
-    momentum = state.get("momentum", {})
     velocity = state.get("velocity", {})
     persistence = state.get("persistence", {})
     breadth = state.get("breadth", {})
@@ -73,22 +75,67 @@ def _state_reason_lines(decision):
     return lines
 
 
+def _contagion_lines(decision):
+    c=decision.get("cross_market_contagion",{})
+    if not c:
+        return ["資料不足"]
+    yn=lambda x:"✓" if x else "·"
+    return [
+        f"傳導階段：{c.get('stage',0)}/{c.get('max_stage',4)}｜{c.get('label','未知')}",
+        f"{yn(c.get('us_semiconductor_shock'))} 美股半導體先行衝擊",
+        f"{yn(c.get('asia_sector_followthrough'))} 亞洲同類產業跟跌（可用觀測 {c.get('asia_observations',0)}）",
+        f"{yn(c.get('global_broadening'))} 壓力擴散至區域大盤（可用觀測 {c.get('broad_observations',0)}）",
+        f"{yn(c.get('credit_or_haven_confirmation'))} 信用或避險資產確認",
+    ]
+
+
 def _one_line(decision, analysis):
     state = decision.get("state_engine", {})
-    persistence = state.get("persistence", {})
-    velocity = state.get("velocity", {})
-    paths = flow_map(analysis, limit=2)
-    route = "；".join(f"{item['from']}→{item['to']}" for item in paths) if paths else "尚無清楚資金路徑"
+    c=decision.get("cross_market_contagion",{})
     market_state = state.get("state", "NORMAL")
     accumulation = state.get("accumulation_score", 0)
-
+    if market_state == "AGGRESSIVE_ROTATION":
+        return f"產業衝擊已跨市場傳導至第 {c.get('stage',0)}/4 階段；累積度 {accumulation:.0f}%，但信用與廣度尚未確認全面避險。"
     if market_state in {"SYSTEMIC", "LIQUIDITY_STRESS"}:
-        return f"{state.get('state_zh')}已形成，風險累積度 {accumulation:.0f}%、高風險持續 {persistence.get('above_risk_off', 0)} 天；{route}。"
+        return f"{state.get('state_zh')}已形成；跨市場傳導 {c.get('stage',0)}/4，需依 OS 危機規則執行。"
     if market_state in {"CREDIT_STRESS", "RISK_OFF"}:
-        return f"風險撤退正在確認，≥25分已持續 {persistence.get('above_alert', 0)} 天，風險速度 {velocity.get('daily_velocity_5d')}／日；{route}。"
+        return f"風險撤退正在確認；跨市場傳導 {c.get('stage',0)}/4，信用或大盤廣度已開始共振。"
     if market_state == "ROTATION":
-        return f"目前仍屬板塊輪動；風險累積度 {accumulation:.0f}%，但同步惡化廣度不足，尚未轉為全面避險；{route}。"
-    return f"市場狀態正常，風險沒有形成持續且廣泛的撤退；{route}。"
+        return f"目前仍屬板塊輪動；累積度 {accumulation:.0f}%，跨市場傳導 {c.get('stage',0)}/4，尚未轉為全面避險。"
+    return "市場狀態正常；尚未形成持續、廣泛且跨市場的撤退。"
+
+
+def _session_lines(decision):
+    layers=decision.get('time_layers',{})
+    latest=layers.get('latest_session',{})
+    out=[]
+    for title,key in (("昨夜美股","us_previous_close"),("今日亞洲","asia_current_close")):
+        items=latest.get(key,[])
+        if not items:
+            out.append(f"{title}：本地資料不足或尚未更新")
+            continue
+        weakest=items[:3]
+        strongest=list(reversed(items[-2:]))
+        weak='、'.join(f"{x['label']} {x['change_pct']:+.1f}%" for x in weakest)
+        strong='、'.join(f"{x['label']} {x['change_pct']:+.1f}%" for x in strongest)
+        out.append(f"{title}弱勢：{weak}")
+        out.append(f"{title}相對強勢：{strong}")
+    return out
+
+
+def _freshness_lines(analysis):
+    rows=[]
+    if not {'market_session','freshness_state','data_lag_hours','latest_date'}.issubset(analysis.columns):
+        return ['未建立資料新鮮度欄位']
+    work=analysis[analysis.market_session.astype(str).ne('')].copy()
+    for session in ('US_CLOSE','ASIA_CLOSE'):
+        part=work[work.market_session==session]
+        if part.empty: continue
+        stale=int(part.freshness_state.isin(['STALE','VERY_STALE']).sum())
+        fresh=int((part.freshness_state=='FRESH').sum())
+        unknown=int((part.freshness_state=='UNKNOWN').sum())
+        rows.append(f"{session}：新鮮 {fresh}｜落後 {stale}｜未知 {unknown}")
+    return rows or ['資料不足']
 
 
 def _analog_lines(decision):
@@ -99,7 +146,6 @@ def _analog_lines(decision):
     for index, match in enumerate(analogs.get("matches", []), 1):
         phase = f"Day {match.get('phase_day')}" if match.get("phase_day") else "階段未知"
         stage = match.get("next_stage", {})
-        next_text = ""
         if stage.get("available"):
             leading = "、".join(stage.get("leading_components", [])) or "構成變化不明顯"
             next_text = f"｜後續{stage.get('horizon_days')}日：{stage.get('direction')}（風險{stage.get('risk_change'):+.1f}；{leading}）"
@@ -117,26 +163,20 @@ def telegram_message(version, generated, decision, analysis, statuses, history_r
     lines = [
         f"🧠 PIOS 市場狀態引擎 V{version}",
         f"{decision['lamp']} OS 3.1.1：{decision['mode']}｜決策可信度 {decision['decision_confidence_pct']:.1f}%",
-        f"時間：{generated}",
-        "",
-        "【今日一句話】",
-        _one_line(decision, analysis),
-        "",
-        "【市場狀態】",
-        *_state_summary(decision),
-        "",
-        "【狀態判斷依據】",
-        *_state_reason_lines(decision),
-        "",
-        "【OS 建議】",
-        decision["action"],
-        "",
-        "【資金流向地圖｜20D】",
+        f"時間：{generated}", "",
+        "【今日一句話】", _one_line(decision, analysis), "",
+        "【最近交易時段｜1D】", *_session_lines(decision), "",
+        "【市場狀態】", *_state_summary(decision), "",
+        "【跨市場傳導】", *_contagion_lines(decision), "",
+        "【狀態判斷依據】", *_state_reason_lines(decision), "",
+        "【OS 建議】", decision["action"], "",
+        "【相對價格輪動代理｜20D】",
+        "注意：以下為價格表現差，不等同 ETF 申購贖回或實際資金直接搬家。",
     ]
     if paths:
         for index, path in enumerate(paths, 1):
             lines.append(
-                f"{index}. {path['from']} {_fmt(path['from_change_20d'])} → {path['to']} {_fmt(path['to_change_20d'])}｜差 {path['spread_20d']:+.1f}｜強度 {path['strength_percentile']:.0f}% {_stars(path['stars'])}"
+                f"{index}. {path['from']} {_fmt(path['from_change_20d'])} → {path['to']} {_fmt(path['to_change_20d'])}｜差 {path['spread_20d']:+.1f}｜{path['level']}｜證據 {path['evidence_score']}/{path['max_evidence_score']}"
             )
     else:
         lines.append("資料不足")
@@ -148,50 +188,29 @@ def telegram_message(version, generated, decision, analysis, statuses, history_r
             value = "缺資料" if pd.isna(part["value"]) else f"{part['value']:+.1f}"
             lines.append(f"  · {part['factor']} {value} → +{part['risk_points']:.1f}（{part['rule']}）")
 
-    lines += [
-        "",
-        "【Top 5 流入領先｜多週期】",
-        *_rotation_lines(inflow),
-        "",
-        "【Top 5 流出落後｜多週期】",
-        *_rotation_lines(outflow),
-        "",
-        "【180天位置】",
-    ]
+    lines += ["", "【Top 5 相對強勢｜多週期】", *_rotation_lines(inflow), "", "【Top 5 相對弱勢｜多週期】", *_rotation_lines(outflow), "", "【180天位置】"]
     for factor in IMPORTANT_POSITIONS:
         row = analysis[analysis.factor == factor]
-        if row.empty:
-            continue
+        if row.empty: continue
         item = row.iloc[0]
         if pd.notna(item.percentile_180d):
-            lines.append(
-                f"- {item.label}：{item.percentile_180d:.0f}%｜20D {_fmt(item.change_20d_pct)}｜強度 {item.strength_20d_pctile:.0f}% {_stars(item.strength_stars_20d)}｜{item.trend_phase}"
-            )
+            lines.append(f"- {item.label}：{item.percentile_180d:.0f}%｜20D {_fmt(item.change_20d_pct)}｜強度 {item.strength_20d_pctile:.0f}% {_stars(item.strength_stars_20d)}｜{item.trend_phase}")
 
-    lines += ["", "【歷史相似度與階段】", *_analog_lines(decision)]
+    lines += ["", "【資料時效】", *_freshness_lines(analysis), "", "【歷史相似度與階段】", *_analog_lines(decision)]
     anomalies = analysis[pd.to_numeric(analysis.zscore_180d, errors="coerce").abs() >= 2]
     lines += ["", "【180天事件時間軸】"]
     if anomalies.empty:
         lines.append("目前沒有 |Z|≥2 的異常事件。")
     else:
         for _, item in anomalies.head(6).iterrows():
-            if bool(item.event_active):
-                timeline = f"自 {item.event_start_date or '未知'} 起 {int(item.event_duration_days)} 天，{item.event_state}"
-            else:
-                timeline = f"已解除；最近 {item.last_z_event_date or '無'}"
-            lines.append(
-                f"⚠️ {item.label} Z {item.zscore_180d:+.2f}｜{timeline}｜180D共 {int(item.z_event_count_180d)} 天｜排名 {item.z_rank_abs_180d:.0f}%"
-            )
+            timeline = f"自 {item.event_start_date or '未知'} 起 {int(item.event_duration_days)} 天，{item.event_state}" if bool(item.event_active) else f"已解除；最近 {item.last_z_event_date or '無'}"
+            lines.append(f"⚠️ {item.label} Z {item.zscore_180d:+.2f}｜{timeline}｜180D共 {int(item.z_event_count_180d)} 天｜排名 {item.z_rank_abs_180d:.0f}%")
 
     healthy = {"OK", "STANDBY", "SDK_AVAILABLE", "DISABLED"}
     implemented = [s for s in statuses if getattr(s, "adapter_state", "").startswith(("IMPLEMENTED", "OFFICIAL", "DERIVED"))]
     core = [s for s in implemented if getattr(s, "used_in_model", "NO") == "YES"]
     core_bad = [s for s in core if s.status not in healthy]
-    lines += [
-        "",
-        "【資料品質】",
-        f"核心模型來源 {sum(s.status in healthy for s in core)}/{len(core)} 正常｜市場歷史 {history_rows}/180｜風險歷史 {len(risk_history)}/180",
-    ]
+    lines += ["", "【資料品質】", f"核心模型來源 {sum(s.status in healthy for s in core)}/{len(core)} 正常｜市場歷史 {history_rows}/180｜風險歷史 {len(risk_history)}/180"]
     if decision.get("missing_model_factors"):
         lines.append("缺模型因子：" + "、".join(decision["missing_model_factors"]))
     for provider_status in core_bad[:5]:

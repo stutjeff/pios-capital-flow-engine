@@ -8,7 +8,7 @@ import pandas as pd
 from .config import load_yaml
 from .history import merge_rolling
 from .models import status,statuses_to_frame,now_taipei
-from .scoring import analyze,decision
+from .scoring import analyze,decision,build_contagion,rotation_evidence_summary,build_time_layers
 from .risk_history import build_risk_history,merge_risk_history
 from .state_engine import evaluate_state,apply_os_policy
 from .analogs import compare as compare_analogs
@@ -17,7 +17,7 @@ from .telegram import send
 from pios.providers.base import ProviderContext
 from pios.providers.registry import discover,create
 
-VERSION='6.5.0'
+VERSION='6.6.0'
 DATA=Path('data')
 TS=DATA/'capital_flow_timeseries_180d.csv'
 STATUS=DATA/'source_status.csv'
@@ -38,7 +38,18 @@ def log(msg):
 def _instances(model_only:bool=False):
     cfg=load_yaml('providers.yaml'); items=list(cfg.get('providers',[]))
     sectors=load_yaml('sectors.yaml').get('market_symbols',{})
-    for symbol,column in sectors.items():items.append({'id':f'market_{symbol.lower()}','type':'market_chain','symbol':symbol,'column':column,'used_in_model':True})
+    for symbol,spec in sectors.items():
+        if isinstance(spec,str):
+            spec={'column':spec}
+        item={
+            'id':f"market_{str(symbol).lower()}_{str(spec.get('exchange','US')).lower()}",
+            'type':'market_chain','symbol':str(symbol),'column':spec.get('column',str(symbol)),
+            'exchange':spec.get('exchange','US'),'label':spec.get('label',str(symbol)),
+            'region':spec.get('region',''),'session':spec.get('session',''),
+            'data_type':spec.get('data_type','PRICE_PROXY'),
+            'used_in_model':bool(spec.get('used_in_model',True)),
+        }
+        items.append(item)
     enabled=[x for x in items if x.get('enabled',True)]
     return [x for x in enabled if x.get('used_in_model',False)] if model_only else enabled
 
@@ -96,6 +107,37 @@ def collect():
     return _derive(ts,statuses)
 
 
+
+def _market_metadata(statuses:list)->dict[str,dict]:
+    meta={}
+    cfg=load_yaml('sectors.yaml').get('market_symbols',{})
+    for symbol,spec in cfg.items():
+        if isinstance(spec,str): spec={'column':spec}
+        column=spec.get('column',str(symbol))
+        meta[column]={
+            'label':spec.get('label',column),'region':spec.get('region',''),
+            'market_session':spec.get('session',''),'data_type':spec.get('data_type','PRICE_PROXY'),
+            'latest_date':'','data_lag_hours':None,
+        }
+    for st in statuses:
+        source=str(getattr(st,'source',''))
+        for symbol,spec in cfg.items():
+            if isinstance(spec,str): spec={'column':spec}
+            exchange=str(spec.get('exchange','US'))
+            ticker=f"{symbol}.{exchange}"
+            if ticker in source or (exchange=='US' and f":{symbol}" in source):
+                column=spec.get('column',str(symbol))
+                meta.setdefault(column,{})
+                meta[column].update({
+                    'latest_date':getattr(st,'latest_date',''),
+                    'data_lag_hours':float(getattr(st,'data_lag_hours','') or 0) if str(getattr(st,'data_lag_hours','')).strip() else None,
+                    'market_session':getattr(st,'market_session','') or spec.get('session',''),
+                    'region':getattr(st,'region','') or spec.get('region',''),
+                    'data_type':getattr(st,'data_type','') or spec.get('data_type','PRICE_PROXY'),
+                })
+                break
+    return meta
+
 def _previous_state()->str|None:
     if not DECISION.exists():return None
     try:return json.loads(DECISION.read_text(encoding='utf-8')).get('market_state')
@@ -130,14 +172,17 @@ def run():
     DATA.mkdir(exist_ok=True)
     RUNLOG.write_text('',encoding='utf-8'); log(f'PIOS Market State Engine V{VERSION}')
     ts,statuses=collect(); log(f'Collected timeseries rows={len(ts)}')
-    a=analyze(ts); base=decision(a)
+    market_meta=_market_metadata(statuses)
+    a=analyze(ts,market_meta); base=decision(a)
     generated=now_taipei()
     current_risk=build_risk_history(ts)
     rh=merge_risk_history(current_risk,RISK_HISTORY,180)
-    state_data=evaluate_state(rh,_previous_state())
+    contagion=build_contagion(a)
+    rotation_evidence=rotation_evidence_summary(a)
+    state_data=evaluate_state(rh,_previous_state(),context={'contagion':contagion,'rotation_evidence':rotation_evidence})
     d=apply_os_policy(base,state_data)
     analogs=compare_analogs(rh,ANALOG_LIBRARY)
-    d.update({'version':VERSION,'generated_at_taipei':generated,'state_engine':state_data,'historical_analogs':analogs})
+    d.update({'version':VERSION,'generated_at_taipei':generated,'state_engine':state_data,'historical_analogs':analogs,'cross_market_contagion':contagion,'rotation_evidence':rotation_evidence,'time_layers':build_time_layers(a)})
     sh=_append_state_history(state_data,generated)
     ts.to_csv(TS,index=False)
     statuses_to_frame(statuses).to_csv(STATUS,index=False)

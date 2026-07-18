@@ -1,4 +1,4 @@
-# Deployment Profile — V6.5.0 Standalone
+# Deployment Profile — V6.6.0 Standalone
 
 - Scope: 資金流主雷達獨立版
 - External radar fusion: 不包含

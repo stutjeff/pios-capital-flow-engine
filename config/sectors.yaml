@@ -1,17 +1,196 @@
 market_symbols:
-  SPY: SPY
-  QQQ: QQQ
-  IWM: IWM
-  SOXX: SOXX
-  SMH: SMH
-  GLD: GLD
-  TLT: TLT
-  HYG: HYG
-  LQD: LQD
-  EEM: EEM
-  FXI: FXI
-  XLF: XLF_FINANCIALS
-  XLE: XLE_ENERGY
-  XLU: XLU_UTILITIES
-  XLK: XLK_TECH
-  XLP: XLP_STAPLES
+  SPY:
+    column: SPY
+    exchange: US
+    label: 美股大盤
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  QQQ:
+    column: QQQ
+    exchange: US
+    label: Nasdaq 100
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  IWM:
+    column: IWM
+    exchange: US
+    label: 美國小型股
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  SOXX:
+    column: SOXX
+    exchange: US
+    label: 美國半導體
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  SMH:
+    column: SMH
+    exchange: US
+    label: 美國半導體ETF
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  GLD:
+    column: GLD
+    exchange: US
+    label: 黃金
+    region: GLOBAL
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  TLT:
+    column: TLT
+    exchange: US
+    label: 長天期美債
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  HYG:
+    column: HYG
+    exchange: US
+    label: 高收益債ETF
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  LQD:
+    column: LQD
+    exchange: US
+    label: 投資級債ETF
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  EEM:
+    column: EEM
+    exchange: US
+    label: 新興市場
+    region: GLOBAL
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  FXI:
+    column: FXI
+    exchange: US
+    label: 中國大型股ADR代理
+    region: CHINA_PROXY
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  XLF:
+    column: XLF_FINANCIALS
+    exchange: US
+    label: 金融
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  XLE:
+    column: XLE_ENERGY
+    exchange: US
+    label: 能源
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  XLU:
+    column: XLU_UTILITIES
+    exchange: US
+    label: 公用事業
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  XLK:
+    column: XLK_TECH
+    exchange: US
+    label: 科技
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+  XLP:
+    column: XLP_STAPLES
+    exchange: US
+    label: 必需消費
+    region: US
+    session: US_CLOSE
+    data_type: PRICE_PROXY
+
+  # 亞洲本地交易所價格層。優先由 EODHD 讀取；若免費方案或代碼不支援，
+  # 會在 source_status.csv 明確標示，不會拿美國掛牌 ETF 冒充今日亞洲現貨。
+  0050:
+    column: TW_LARGE_CAP
+    exchange: TW
+    label: 台灣大型股
+    region: TAIWAN
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  0052:
+    column: TW_TECH
+    exchange: TW
+    label: 台灣科技
+    region: TAIWAN
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  00891:
+    column: TW_SEMICONDUCTOR
+    exchange: TW
+    label: 台灣半導體
+    region: TAIWAN
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  1306:
+    column: JP_TOPIX
+    exchange: T
+    label: 日本TOPIX代理
+    region: JAPAN
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  1321:
+    column: JP_NIKKEI
+    exchange: T
+    label: 日本日經225代理
+    region: JAPAN
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  1615:
+    column: JP_BANKS
+    exchange: T
+    label: 日本銀行
+    region: JAPAN
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  510300:
+    column: CN_CSI300
+    exchange: SHG
+    label: 中國滬深300代理
+    region: CHINA
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  159915:
+    column: CN_CHINEXT
+    exchange: SHE
+    label: 中國創業板代理
+    region: CHINA
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  2800:
+    column: HK_HSI
+    exchange: HK
+    label: 香港恆生代理
+    region: HONG_KONG
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false
+  3033:
+    column: HK_TECH
+    exchange: HK
+    label: 香港恆生科技代理
+    region: HONG_KONG
+    session: ASIA_CLOSE
+    data_type: LOCAL_PRICE
+    used_in_model: false

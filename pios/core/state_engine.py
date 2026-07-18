@@ -7,10 +7,11 @@ import pandas as pd
 
 from .config import load_yaml
 
-STATE_ORDER = ["NORMAL", "ROTATION", "RISK_OFF", "CREDIT_STRESS", "LIQUIDITY_STRESS", "SYSTEMIC"]
+STATE_ORDER = ["NORMAL", "ROTATION", "AGGRESSIVE_ROTATION", "RISK_OFF", "CREDIT_STRESS", "LIQUIDITY_STRESS", "SYSTEMIC"]
 STATE_ZH = {
     "NORMAL": "正常",
     "ROTATION": "板塊輪動",
+    "AGGRESSIVE_ROTATION": "劇烈板塊輪動",
     "RISK_OFF": "風險撤退",
     "CREDIT_STRESS": "信用壓力",
     "LIQUIDITY_STRESS": "流動性壓力",
@@ -70,7 +71,7 @@ def _breadth(latest: pd.Series) -> dict[str, Any]:
     }
 
 
-def _state_candidate(latest: pd.Series, breadth: dict[str, Any], cfg: dict[str, Any]) -> str:
+def _state_candidate(latest: pd.Series, breadth: dict[str, Any], cfg: dict[str, Any], context: dict[str,Any] | None = None) -> str:
     risk = float(latest.get("risk_score", 0))
     breadth_pct = breadth["breadth_pct"]
     credit = float(latest.get("credit_score", 0))
@@ -78,6 +79,9 @@ def _state_candidate(latest: pd.Series, breadth: dict[str, Any], cfg: dict[str, 
     defensive = float(latest.get("defensive_score", 0))
     risk_asset = float(latest.get("risk_asset_score", 0))
     thresholds = cfg.get("risk_thresholds", {})
+    context=context or {}
+    contagion=context.get("contagion",{})
+    rotation=context.get("rotation_evidence",{})
 
     if risk >= float(thresholds.get("systemic", 75)) and breadth_pct >= 75:
         return "SYSTEMIC"
@@ -87,12 +91,19 @@ def _state_candidate(latest: pd.Series, breadth: dict[str, Any], cfg: dict[str, 
         return "CREDIT_STRESS"
     if risk >= float(thresholds.get("risk_off", 35)) and breadth_pct >= float(cfg.get("breadth", {}).get("risk_off_pct", 57)):
         return "RISK_OFF"
+    aggressive=cfg.get("aggressive_rotation",{})
+    if (
+        risk_asset >= float(aggressive.get("minimum_risk_asset_score",7))
+        and int(contagion.get("stage",0)) >= int(aggressive.get("minimum_contagion_stage",2))
+        and breadth_pct <= float(aggressive.get("maximum_breadth_pct",56))
+    ):
+        return "AGGRESSIVE_ROTATION"
     if risk_asset >= 7 or (risk >= float(thresholds.get("observe", 15)) and breadth_pct < 57):
         return "ROTATION"
     return "NORMAL"
 
 
-def _state_reasons(state: str, latest: pd.Series, breadth: dict[str, Any], persistence: dict[str, int], cfg: dict[str, Any]) -> dict[str, Any]:
+def _state_reasons(state: str, latest: pd.Series, breadth: dict[str, Any], persistence: dict[str, int], cfg: dict[str, Any], context: dict[str,Any] | None = None) -> dict[str, Any]:
     risk = float(latest.get("risk_score", 0))
     credit = float(latest.get("credit_score", 0))
     vol = float(latest.get("volatility_score", 0))
@@ -100,6 +111,9 @@ def _state_reasons(state: str, latest: pd.Series, breadth: dict[str, Any], persi
     defensive = float(latest.get("defensive_score", 0))
     breadth_pct = float(breadth.get("breadth_pct", 0))
     t = cfg.get("risk_thresholds", {})
+    context=context or {}
+    contagion=context.get("contagion",{})
+    rotation=context.get("rotation_evidence",{})
 
     confirmed: list[str] = []
     blockers: list[str] = []
@@ -114,6 +128,10 @@ def _state_reasons(state: str, latest: pd.Series, breadth: dict[str, Any], persi
         confirmed.append(f"避險輪動 {defensive:.1f}/20 已升溫")
     if breadth_pct >= 40:
         confirmed.append(f"風險廣度達 {breadth_pct:.0f}%")
+    if int(contagion.get("stage",0)) >= 2:
+        confirmed.append(f"跨市場傳導已達 {contagion.get('stage')}/4（{contagion.get('label')}）")
+    if rotation.get("confirmed_paths",0) > 0:
+        confirmed.append(f"{rotation.get('confirmed_paths')} 條價格輪動路徑達初步確認以上")
     if persistence.get("above_observe", 0) >= 3:
         confirmed.append(f"風險≥15分已持續 {persistence['above_observe']} 天")
 
@@ -132,6 +150,8 @@ def _state_reasons(state: str, latest: pd.Series, breadth: dict[str, Any], persi
         summary = "多數核心模組仍在正常區間。"
     elif state == "ROTATION":
         summary = "風險集中於部分板塊，尚未擴散為全面撤退。"
+    elif state == "AGGRESSIVE_ROTATION":
+        summary = "產業衝擊已跨市場傳導，但信用與廣度尚未確認全面避險。"
     elif state == "RISK_OFF":
         summary = "多個風險模組同步惡化，市場開始進入廣泛撤退。"
     elif state == "CREDIT_STRESS":
@@ -185,7 +205,7 @@ def _velocity_metrics(risk: pd.Series) -> dict[str, Any]:
     }
 
 
-def evaluate_state(history: pd.DataFrame, previous_state: str | None = None) -> dict[str, Any]:
+def evaluate_state(history: pd.DataFrame, previous_state: str | None = None, context: dict[str,Any] | None = None) -> dict[str, Any]:
     cfg = load_yaml("state_engine.yaml")
     if history is None or history.empty:
         return {"state": "NORMAL", "state_zh": STATE_ZH["NORMAL"], "reason": "風險歷史不足"}
@@ -196,7 +216,8 @@ def evaluate_state(history: pd.DataFrame, previous_state: str | None = None) -> 
             h[column] = pd.to_numeric(h[column], errors="coerce")
     latest = h.iloc[-1]
     breadth = _breadth(latest)
-    candidate = _state_candidate(latest, breadth, cfg)
+    context=context or {}
+    candidate = _state_candidate(latest, breadth, cfg, context)
     risk = h["risk_score"]
 
     momentum_1d = float(risk.iloc[-1] - risk.iloc[-2]) if len(risk) >= 2 else float("nan")
@@ -205,6 +226,9 @@ def evaluate_state(history: pd.DataFrame, previous_state: str | None = None) -> 
     slope5 = _slope(risk, 5)
     slope10 = _slope(risk, 10)
     thresholds = cfg.get("risk_thresholds", {})
+    context=context or {}
+    contagion=context.get("contagion",{})
+    rotation=context.get("rotation_evidence",{})
     diff = risk.diff().fillna(0)
     persistence = {
         "above_observe": _streak(risk, lambda x: x >= float(thresholds.get("observe", 15))),
@@ -245,7 +269,7 @@ def evaluate_state(history: pd.DataFrame, previous_state: str | None = None) -> 
         trend = "震盪"
 
     velocity = _velocity_metrics(risk)
-    reasons = _state_reasons(state, latest, breadth, persistence, cfg)
+    reasons = _state_reasons(state, latest, breadth, persistence, cfg, context)
     accumulation_score = min(
         100.0,
         0.35 * float(percentile if pd.notna(percentile) else 0)
@@ -279,6 +303,8 @@ def evaluate_state(history: pd.DataFrame, previous_state: str | None = None) -> 
         "breadth": breadth,
         "reasons": reasons,
         "recent_scores": [round(float(x), 1) for x in valid_risk.tail(10)],
+        "contagion": context.get("contagion",{}),
+        "rotation_evidence": context.get("rotation_evidence",{}),
     }
 
 
@@ -295,6 +321,8 @@ def apply_os_policy(decision: dict[str, Any], state: dict[str, Any]) -> dict[str
     elif current_state in {"RISK_OFF", "CREDIT_STRESS", "LIQUIDITY_STRESS", "SYSTEMIC"} and persistence.get("above_alert", 0) >= 5 and confidence >= 65:
         mode = "514"
         action = "風險撤退已持續確認；切換至 514 候選，降低槓桿並提高短債。"
+    elif current_state == "AGGRESSIVE_ROTATION":
+        action = "維持 452 並提高觀察級別；產業衝擊已跨市場傳導，若擴散至大盤或信用市場再評估 514。"
     elif current_state == "ROTATION":
         action = "維持 452；目前以板塊輪動為主，尚未形成廣泛避險。"
 

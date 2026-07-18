@@ -1,7 +1,8 @@
-version: 2
+version: 3
 risk_thresholds:
   observe: 15
   alert: 25
+  aggressive_rotation: 18
   risk_off: 35
   credit_stress: 48
   liquidity_stress: 60
@@ -15,6 +16,11 @@ breadth:
   warning_pct: 40
   risk_off_pct: 57
   systemic_pct: 75
+aggressive_rotation:
+  minimum_risk_asset_score: 7
+  minimum_contagion_stage: 2
+  minimum_price_proxy_strength: 60
+  maximum_breadth_pct: 56
 momentum:
   accelerating_5d: 4
   improving_5d: -4

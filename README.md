@@ -1,8 +1,8 @@
-# PIOS Market State Engine V6.5.0 Standalone
+# PIOS Market State Engine V6.6.0 Standalone
 
 這是資金流主雷達的獨立市場狀態引擎，不包含宏觀雷達、新聞雷達或三雷達融合。
 
-## V6.5 完整功能
+## V6.6 完整功能
 
 - 官方資料 Provider 與 180 天資金流資料層
 - Risk Score：五大模組風險分數
@@ -37,3 +37,9 @@
 - `data/source_status.csv`
 - `data/decision.json`
 - `data/analog_library.json`
+
+## V6.6.0：時區、價格輪動與跨市場傳導
+
+本版將「最近交易時段」與 5D／20D／60D 結構分開，避免把昨夜美股、今日亞洲與中期趨勢混成同一層。輪動箭頭正式改名為「相對價格輪動代理」，並依 1D、5D、20D 一致性、強度與資料新鮮度標示為推測、初步確認或高度確認；在沒有 ETF 申購贖回或其他真實流量資料時，不宣稱資金已直接搬家。
+
+新增亞洲本地交易所價格層、資料日期／交易時段／落後時數、跨市場傳導 0–4 階段，以及 `AGGRESSIVE_ROTATION`（劇烈板塊輪動）。亞洲本地代碼是否可讀取取決於既有市場資料方案；不支援時會在 `data/source_status.csv` 清楚標示，不會用美國掛牌 ETF 冒充今日亞洲現貨。
