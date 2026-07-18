@@ -1,4 +1,4 @@
-name: PIOS Market State Engine V6.6.0
+name: PIOS Market State Engine V6.6.1
 
 on:
   schedule:
@@ -17,7 +17,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: pios-market-state-engine-v6-6
+  group: pios-market-state-engine-v6-6-1
   cancel-in-progress: false
 
 jobs:
@@ -120,79 +120,164 @@ jobs:
 
           import pandas as pd
 
-          source = Path("data/source_status.csv")
+          source_path = Path("data/source_status.csv")
 
-          if source.exists():
-              df = pd.read_csv(source)
+          if source_path.exists():
+              try:
+                  df = pd.read_csv(source_path)
 
-              print("========== Source Status ==========")
+                  print("========== Source Status ==========")
 
-              if {"category", "status"}.issubset(df.columns):
-                  print(
-                      df.groupby(
-                          ["category", "status"],
-                          dropna=False,
+                  if {"category", "status"}.issubset(df.columns):
+                      print(
+                          df.groupby(
+                              ["category", "status"],
+                              dropna=False,
+                          )
+                          .size()
+                          .to_string()
                       )
-                      .size()
-                      .to_string()
-                  )
+                  else:
+                      print("Missing category/status columns:")
+                      print(df.columns.tolist())
 
-              if {"market_session", "freshness_state"}.issubset(df.columns):
-                  print("\n========== Freshness ==========")
-                  print(
-                      df.groupby(
-                          ["market_session", "freshness_state"],
-                          dropna=False,
+                  if {
+                      "market_session",
+                      "freshness_state",
+                  }.issubset(df.columns):
+                      print("\n========== Data Freshness ==========")
+                      print(
+                          df.groupby(
+                              ["market_session", "freshness_state"],
+                              dropna=False,
+                          )
+                          .size()
+                          .to_string()
                       )
-                      .size()
-                      .to_string()
-                  )
+
+              except Exception as exc:
+                  print(f"Unable to read source_status.csv: {exc}")
           else:
               print("data/source_status.csv not found")
 
-          decision = Path("data/decision.json")
+          decision_path = Path("data/decision.json")
 
-          if decision.exists():
-              payload = json.loads(
-                  decision.read_text(encoding="utf-8")
-              )
+          if decision_path.exists():
+              try:
+                  payload = json.loads(
+                      decision_path.read_text(encoding="utf-8")
+                  )
 
-              state = payload.get("state_engine", {})
-              contagion = payload.get("cross_market_contagion", {})
+                  state = payload.get("state_engine", {})
+                  contagion = payload.get(
+                      "cross_market_contagion",
+                      {},
+                  )
+                  analog = payload.get(
+                      "historical_analog",
+                      {},
+                  )
 
-              print("\n========== Market State ==========")
-              print(
-                  "state:",
-                  state.get("state"),
-                  state.get("state_zh"),
-              )
-              print("risk:", state.get("risk_score"))
-              print(
-                  "contagion:",
-                  contagion.get("stage"),
-                  "/",
-                  contagion.get("max_stage"),
-                  contagion.get("label"),
-              )
+                  print("\n========== Market State ==========")
+                  print(
+                      "state:",
+                      state.get("state"),
+                      state.get("state_zh"),
+                  )
+                  print("risk:", state.get("risk_score"))
+                  print("accumulation:", state.get("accumulation_score"))
+
+                  print("\n========== Cross-Market Contagion ==========")
+                  print(
+                      "stage:",
+                      contagion.get("stage"),
+                      "/",
+                      contagion.get("max_stage"),
+                  )
+                  print("label:", contagion.get("label"))
+
+                  print("\n========== Historical Analog ==========")
+                  print("status:", analog.get("status"))
+                  print("reason:", analog.get("reason"))
+
+              except Exception as exc:
+                  print(f"Unable to read decision.json: {exc}")
           else:
               print("data/decision.json not found")
+
+          analog_path = Path("data/analog_library.json")
+
+          if analog_path.exists():
+              try:
+                  analog_payload = json.loads(
+                      analog_path.read_text(encoding="utf-8")
+                  )
+
+                  print("\n========== Analog Library ==========")
+                  print("status:", analog_payload.get("status"))
+                  print("version:", analog_payload.get("version"))
+
+                  events = analog_payload.get("events", [])
+                  print("events:", len(events))
+
+              except Exception as exc:
+                  print(f"Unable to read analog_library.json: {exc}")
+          else:
+              print("data/analog_library.json not found")
           PY
 
       - name: Commit generated data
         if: always()
+        shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          set -euo pipefail
 
-          # 只提交 data 資料夾，避免把程式碼、快取或測試暫存檔一起提交
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          echo "========== Git status before commit =========="
+          git status --short
+
+          # 清除 Python 與 pytest 執行後產生的快取
+          find . \
+            -type d \
+            -name "__pycache__" \
+            -prune \
+            -exec rm -rf {} + 2>/dev/null || true
+
+          find . \
+            -type d \
+            -name ".pytest_cache" \
+            -prune \
+            -exec rm -rf {} + 2>/dev/null || true
+
+          find . \
+            -type f \
+            \( -name "*.pyc" -o -name "*.pyo" \) \
+            -delete 2>/dev/null || true
+
+          # 只加入系統每日產生的資料
           git add -A data/
 
           if git diff --cached --quiet; then
-            echo "No data changes"
+            echo "No generated data changes"
             exit 0
           fi
 
-          git commit -m "Update PIOS market state $(date -u +%F-%H%M)"
+          git commit \
+            -m "Update PIOS market state $(date -u +%F-%H%M)"
 
-          # 不再執行 pull/rebase，避免 __pycache__ 或其他未暫存變更阻擋收尾
+          # commit 後以目前 HEAD 為基準清理所有未暫存殘留。
+          # 已提交到 data/ 的資料不會被刪除。
+          git reset --hard HEAD
+          git clean -fd
+
+          echo "========== Git status after cleanup =========="
+          git status --short
+
+          # 與遠端同步，避免執行期間有人手動更新 Repository
+          git fetch origin main
+          git rebase origin/main
+
           git push origin HEAD:main
