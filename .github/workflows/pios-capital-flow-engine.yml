@@ -2,7 +2,7 @@ name: PIOS Market State Engine V6.6.0
 
 on:
   schedule:
-    # 每天台北 17:18（UTC 09:18）
+    # 每天台北時間 17:18（UTC 09:18）
     - cron: "18 9 * * *"
 
   workflow_dispatch:
@@ -184,12 +184,25 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/*.csv data/*.json data/*.txt 2>/dev/null || true
+          # 只提交 data 資料夾，避免把程式碼或測試暫存檔誤提交
+          git add -A data/
 
           if git diff --cached --quiet; then
             echo "No data changes"
-          else
-            git commit -m "Update PIOS market state $(date -u +%F-%H%M)"
-            git pull --rebase
-            git push
+            exit 0
           fi
+
+          git commit -m "Update PIOS market state $(date -u +%F-%H%M)"
+
+          # 清理可能殘留的未追蹤快取，避免 rebase 因工作目錄不乾淨而失敗
+          git clean -fd \
+            -e data/ \
+            -e .github/ \
+            -e config/ \
+            -e pios/ \
+            -e templates/ \
+            -e tests/
+
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
