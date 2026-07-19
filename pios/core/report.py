@@ -79,13 +79,16 @@ def _contagion_lines(decision):
     c=decision.get("cross_market_contagion",{})
     if not c:
         return ["資料不足"]
-    yn=lambda x:"✓" if x else "·"
+    def mark(value):
+        return "？" if value is None else ("✓" if value else "·")
+    stage=c.get('stage')
+    stage_text=f"{stage}/{c.get('max_stage',4)}" if c.get('assessable',True) else "不可判定"
     return [
-        f"傳導階段：{c.get('stage',0)}/{c.get('max_stage',4)}｜{c.get('label','未知')}",
-        f"{yn(c.get('us_semiconductor_shock'))} 美股半導體先行衝擊",
-        f"{yn(c.get('asia_sector_followthrough'))} 亞洲同類產業跟跌（可用觀測 {c.get('asia_observations',0)}）",
-        f"{yn(c.get('global_broadening'))} 壓力擴散至區域大盤（可用觀測 {c.get('broad_observations',0)}）",
-        f"{yn(c.get('credit_or_haven_confirmation'))} 信用或避險資產確認",
+        f"傳導階段：{stage_text}｜{c.get('label','未知')}",
+        f"{mark(c.get('us_semiconductor_shock'))} 美股半導體先行衝擊（可用觀測 {c.get('us_observations',0)}）",
+        f"{mark(c.get('asia_sector_followthrough'))} 亞洲同類產業跟跌（可用觀測 {c.get('asia_observations',0)}）",
+        f"{mark(c.get('global_broadening'))} 壓力擴散至區域大盤（可用觀測 {c.get('broad_observations',0)}）",
+        f"{mark(c.get('credit_or_haven_confirmation'))} 信用或避險資產確認",
     ]
 
 
@@ -95,13 +98,17 @@ def _one_line(decision, analysis):
     market_state = state.get("state", "NORMAL")
     accumulation = state.get("accumulation_score", 0)
     if market_state == "AGGRESSIVE_ROTATION":
-        return f"產業衝擊已跨市場傳導至第 {c.get('stage',0)}/4 階段；累積度 {accumulation:.0f}%，但信用與廣度尚未確認全面避險。"
+        stage=c.get('stage')
+        stage_text=f"{stage}/4" if c.get('assessable',True) else "資料不足"
+        return f"產業衝擊跨市場傳導為 {stage_text}；累積度 {accumulation:.0f}%，但信用與廣度尚未確認全面避險。"
     if market_state in {"SYSTEMIC", "LIQUIDITY_STRESS"}:
         return f"{state.get('state_zh')}已形成；跨市場傳導 {c.get('stage',0)}/4，需依 OS 危機規則執行。"
     if market_state in {"CREDIT_STRESS", "RISK_OFF"}:
         return f"風險撤退正在確認；跨市場傳導 {c.get('stage',0)}/4，信用或大盤廣度已開始共振。"
     if market_state == "ROTATION":
-        return f"目前仍屬板塊輪動；累積度 {accumulation:.0f}%，跨市場傳導 {c.get('stage',0)}/4，尚未轉為全面避險。"
+        stage=c.get('stage')
+        contagion_text=f"{stage}/4" if c.get('assessable',True) else "資料不足"
+        return f"目前仍屬板塊輪動；累積度 {accumulation:.0f}%，跨市場傳導 {contagion_text}，尚未轉為全面避險。"
     return "市場狀態正常；尚未形成持續、廣泛且跨市場的撤退。"
 
 
@@ -220,14 +227,29 @@ def telegram_message(version, generated, decision, analysis, statuses, history_r
             timeline = f"自 {item.event_start_date or '未知'} 起 {int(item.event_duration_days)} 天，{item.event_state}" if bool(item.event_active) else f"已解除；最近 {item.last_z_event_date or '無'}"
             lines.append(f"⚠️ {item.label} Z {item.zscore_180d:+.2f}｜{timeline}｜180D共 {int(item.z_event_count_180d)} 天｜排名 {item.z_rank_abs_180d:.0f}%")
 
-    healthy = {"OK", "STANDBY", "SDK_AVAILABLE", "DISABLED"}
-    implemented = [s for s in statuses if getattr(s, "adapter_state", "").startswith(("IMPLEMENTED", "OFFICIAL", "DERIVED"))]
-    core = [s for s in implemented if getattr(s, "used_in_model", "NO") == "YES"]
-    core_bad = [s for s in core if s.status not in healthy]
-    lines += ["", "【資料品質】", f"核心模型來源 {sum(s.status in healthy for s in core)}/{len(core)} 正常｜市場歷史 {history_rows}/180｜風險歷史 {len(risk_history)}/180"]
-    if decision.get("missing_model_factors"):
-        lines.append("缺模型因子：" + "、".join(decision["missing_model_factors"]))
+    healthy = {"OK", "STANDBY", "SDK_AVAILABLE", "DERIVED"}
+    missing=list(decision.get("missing_model_factors", []))
+    completeness=float(decision.get("data_completeness_pct",0) or 0)
+    total_core=13
+    available_core=max(0,total_core-len(missing))
+    # Provider attempts are diagnostic only. A market factor may try several backends,
+    # so counting every failed attempt creates a misleading denominator such as 9/53.
+    core_bad=[]
+    seen=set()
+    for provider_status in statuses:
+        if getattr(provider_status,"used_in_model","NO") != "YES":
+            continue
+        if provider_status.status in healthy:
+            continue
+        source=str(provider_status.source)
+        key=source.split(":",1)[-1].split(".",1)[0]
+        if key in seen:
+            continue
+        seen.add(key); core_bad.append(provider_status)
+    lines += ["", "【資料品質】", f"核心模型因子 {available_core}/{total_core} 可用｜完整度 {completeness:.1f}%｜市場歷史 {history_rows}/180｜風險歷史 {len(risk_history)}/180"]
+    if missing:
+        lines.append("缺模型因子：" + "、".join(missing))
     for provider_status in core_bad[:5]:
-        lines.append(f"- {provider_status.source}：{provider_status.error_type or provider_status.status}")
+        lines.append(f"- 候補來源 {provider_status.source}：{provider_status.error_type or provider_status.status}")
     lines.append("完整診斷：data/source_status.csv")
     return "\n".join(lines)

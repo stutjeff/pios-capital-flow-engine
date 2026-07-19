@@ -48,6 +48,26 @@ def pct_change(s: pd.Series, n: int) -> float:
     if len(x)<=n or x.iloc[-n-1]==0: return float("nan")
     return float((x.iloc[-1]/x.iloc[-n-1]-1)*100)
 
+def _market_observations(raw: pd.Series, dates: pd.Series, market_session: str) -> pd.Series:
+    """Return a trading-observation series instead of calendar-forward-filled rows.
+
+    The rolling store is calendar daily. Market prices are forward-filled across
+    weekends/holidays, so using raw row offsets makes 5D look like 0.0%. For market
+    sessions we remove consecutive carry-forward duplicates and keep only dated
+    observations. True unchanged closes are rare and this is safer than treating
+    missing sessions as zero returns. Macro series keep their original cadence.
+    """
+    x=pd.to_numeric(raw,errors="coerce")
+    if not str(market_session or "").strip():
+        return x
+    work=pd.DataFrame({"date":pd.to_datetime(dates,errors="coerce"),"value":x}).dropna()
+    if work.empty:
+        return pd.Series(dtype=float)
+    work=work.sort_values("date")
+    changed=work["value"].ne(work["value"].shift())
+    work=work.loc[changed]
+    return pd.Series(work["value"].to_numpy(),index=work["date"].to_numpy(),dtype=float)
+
 def rolling_return(s: pd.Series, n: int) -> pd.Series:
     x=pd.to_numeric(s,errors="coerce")
     return x.pct_change(n,fill_method=None)*100
@@ -123,7 +143,8 @@ def analyze(ts: pd.DataFrame, metadata: dict[str,dict] | None = None) -> pd.Data
             latest_ts=pd.to_datetime(latest_date_text,errors="coerce")
             if pd.notna(latest_ts):
                 raw=raw.where(dates<=latest_ts)
-        valid=raw.dropna(); z=zscore_series(raw)
+        observed=_market_observations(raw,dates,str(meta.get("market_session", "")))
+        valid=observed.dropna(); z=zscore_series(raw)
         latest_z=float(z.dropna().iloc[-1]) if not z.dropna().empty else float("nan")
         events=z.abs()>=2
         event_count=int(events.fillna(False).sum())
@@ -131,8 +152,8 @@ def analyze(ts: pd.DataFrame, metadata: dict[str,dict] | None = None) -> pd.Data
         last_event=str(event_dates.max().date()) if not event_dates.empty and pd.notna(event_dates.max()) else ""
         abs_z=z.abs().dropna()
         rank=float((abs_z<=abs(latest_z)).mean()*100) if len(abs_z) and pd.notna(latest_z) else float("nan")
-        c1,c5,c20,c60,c120=[pct_change(raw,n) for n in (1,5,20,60,120)]
-        s5,s20,s60,s120=[absolute_strength_percentile(raw,n) for n in (5,20,60,120)]
+        c1,c5,c20,c60,c120=[pct_change(observed,n) for n in (1,5,20,60,120)]
+        s5,s20,s60,s120=[absolute_strength_percentile(observed,n) for n in (5,20,60,120)]
         event_meta=_event_metadata(z,dates)
         lag=meta.get("data_lag_hours")
         freshness="UNKNOWN" if lag is None else "FRESH" if float(lag)<=36 else "STALE" if float(lag)<=72 else "VERY_STALE"
@@ -212,7 +233,10 @@ def decision(a:pd.DataFrame)->dict[str,Any]:
     risk=round(sum(x["score"] for x in comps),1)
     confirms=sum([pd.notna(hy) and hy>0,pd.notna(ig) and ig>0,pd.notna(q) and q<0,pd.notna(soxx) and soxx<0,pd.notna(g) and g>0,pd.notna(t) and t>0,pd.notna(dxy) and dxy>0])
     consistency=50+confirms/7*50
-    confidence=.65*completeness+.35*consistency
+    raw_confidence=.65*completeness+.35*consistency
+    # Confidence may never outrun actual model-factor availability. This prevents
+    # a 9/13 core set from being reported as 90%+ confidence.
+    confidence=min(raw_confidence, completeness)
     thresholds=load_yaml("scoring.yaml").get("thresholds", {})
     t433=thresholds.get("mode_433", {"risk":55,"confidence":70}); t514=thresholds.get("mode_514", {"risk":30,"confidence":65})
     if risk>=float(t433.get("risk",55)) and confidence>=float(t433.get("confidence",70)): mode,lamp,action="433","🔴","危機模式候選；先依 crisis_memory 與確認規則檢查，再執行切換。"
@@ -354,23 +378,33 @@ def build_contagion(a:pd.DataFrame)->dict[str,Any]:
     for f in ('SPY','TW_LARGE_CAP','JP_TOPIX','CN_CSI300','HK_HSI'):
         v=av(a,f,'change_1d_pct')
         if pd.notna(v): broad.append(v)
+    us_available=sum(pd.notna(v) for v in us_semis)
+    asia_available=len(asia_semis)
+    broad_available=len(broad)
     us_shock=any(pd.notna(v) and v<=-2 for v in us_semis)
-    asia_follow=bool(asia_semis) and sum(v<0 for v in asia_semis)/len(asia_semis)>=0.6
-    broad_follow=bool(broad) and sum(v<0 for v in broad)/len(broad)>=0.6
+    asia_follow=asia_available>=2 and sum(v<0 for v in asia_semis)/asia_available>=0.6
+    broad_follow=broad_available>=2 and sum(v<0 for v in broad)/broad_available>=0.6
     credit=av(a,'HY_OAS','change_20d_pct'); ig=av(a,'IG_OAS','change_20d_pct')
     credit_confirm=(pd.notna(credit) and credit>2) or (pd.notna(ig) and ig>2)
     vixp=av(a,'VIX','percentile_180d'); gld=av(a,'GLD','change_5d_pct'); tlt=av(a,'TLT','change_5d_pct')
     haven_confirm=(pd.notna(vixp) and vixp>=70) or ((pd.notna(gld) and gld>1) and (pd.notna(tlt) and tlt>1))
+    assessable=us_available>=1 and asia_available>=2 and broad_available>=2
     stage=0
     if us_shock: stage=1
     if stage>=1 and asia_follow: stage=2
     if stage>=2 and broad_follow: stage=3
     if stage>=3 and (credit_confirm or haven_confirm): stage=4
+    label=['未形成','單一市場衝擊','跨區域產業傳導','擴散至大盤','信用/避險確認'][stage]
+    if not assessable:
+        label='資料不足，暫不可判定'
     return {
-        'stage':stage,'max_stage':4,'label':['未形成','單一市場衝擊','跨區域產業傳導','擴散至大盤','信用/避險確認'][stage],
-        'us_semiconductor_shock':us_shock,'asia_sector_followthrough':asia_follow,'global_broadening':broad_follow,
-        'credit_or_haven_confirmation':bool(credit_confirm or haven_confirm),'asia_observations':len(asia_semis),'broad_observations':len(broad),
-        'interpretation':'跨市場傳導分數只描述擴散階段，不預測後續漲跌。',
+        'stage':stage,'max_stage':4,'label':label,'assessable':assessable,
+        'us_semiconductor_shock':us_shock if us_available else None,
+        'asia_sector_followthrough':asia_follow if asia_available>=2 else None,
+        'global_broadening':broad_follow if broad_available>=2 else None,
+        'credit_or_haven_confirmation':bool(credit_confirm or haven_confirm),
+        'asia_observations':asia_available,'broad_observations':broad_available,'us_observations':us_available,
+        'interpretation':'資料不足時不以0/4表示未傳導；只有觀測覆蓋達門檻才評分。',
     }
 
 def one_line_summary(a:pd.DataFrame)->str:
