@@ -1,4 +1,4 @@
-name: PIOS Market State Engine V6.6.1
+name: PIOS Market State Engine V6.6.2
 
 on:
   schedule:
@@ -17,7 +17,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: pios-market-state-engine-v6-6-1
+  group: pios-market-state-engine-v6-6-2
   cancel-in-progress: false
 
 jobs:
@@ -268,16 +268,13 @@ jobs:
           git commit \
             -m "Update PIOS market state $(date -u +%F-%H%M)"
 
-          # commit 後以目前 HEAD 為基準清理所有未暫存殘留。
-          # 已提交到 data/ 的資料不會被刪除。
+          # commit 後以目前 HEAD 為基準清理所有未暫存殘留
           git reset --hard HEAD
           git clean -fd
 
           echo "========== Git status after cleanup =========="
           git status --short
 
-          # 與遠端同步，避免執行期間有人手動更新 Repository
-          git fetch origin main
-          git rebase origin/main
-
+          # concurrency 已避免同一 workflow 同時寫入
+          # 直接推送，避免 rebase 再被執行期殘留檔案阻擋
           git push origin HEAD:main
