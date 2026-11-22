@@ -1,24 +1,24 @@
 {
   "mode": "514",
   "lamp": "🟡",
-  "risk_score": 47.2,
+  "risk_score": 49.3,
   "components": [
     {
       "name": "信用市場",
       "max": 20,
-      "score": 3.9,
+      "score": 6.9,
       "regime": "正常",
       "parts": [
         {
           "factor": "HY OAS",
-          "value": 2.6239067055393583,
-          "risk_points": 3.9358600583090375,
+          "value": 3.529411764705892,
+          "risk_points": 5.2941176470588385,
           "rule": "20D 擴大×1.5"
         },
         {
           "factor": "IG OAS",
-          "value": 0.0,
-          "risk_points": 0.0,
+          "value": 1.0752688172043001,
+          "risk_points": 1.6129032258064502,
           "rule": "20D 擴大×1.5"
         }
       ]
@@ -40,19 +40,19 @@
     {
       "name": "美元與利率",
       "max": 20,
-      "score": 3.3,
+      "score": 2.4,
       "regime": "正常",
       "parts": [
         {
           "factor": "美元20D",
-          "value": -0.5602693247601098,
+          "value": -0.9179990870908705,
           "risk_points": 0,
           "rule": "正報酬×2"
         },
         {
           "factor": "10Y殖利率20D",
-          "value": 3.258655804480659,
-          "risk_points": 3.258655804480659,
+          "value": 2.4242424242424176,
+          "risk_points": 2.4242424242424176,
           "rule": "正變化×1"
         }
       ]
@@ -105,8 +105,8 @@
     }
   ],
   "data_completeness_pct": 100.0,
-  "signal_consistency_pct": 71.4,
-  "decision_confidence_pct": 90.0,
+  "signal_consistency_pct": 78.6,
+  "decision_confidence_pct": 92.5,
   "missing_model_factors": [],
   "action": "風險撤退已持續確認；切換至 514 候選，降低槓桿並提高短債。",
   "switch_progress": {
@@ -122,9 +122,9 @@
     "433": {
       "risk_target": 55.0,
       "confidence_target": 70.0,
-      "risk_points_needed": 7.8,
+      "risk_points_needed": 5.7,
       "confidence_points_needed": 0,
-      "risk_progress_pct": 85.8,
+      "risk_progress_pct": 89.6,
       "confidence_progress_pct": 100,
       "eligible": false
     }
@@ -133,45 +133,45 @@
   "market_state": "CREDIT_STRESS",
   "market_state_zh": "信用壓力",
   "version": "6.6.2",
-  "generated_at_taipei": "2026-11-22 00:49:29+0800",
+  "generated_at_taipei": "2026-11-23 01:12:25+0800",
   "state_engine": {
     "state": "CREDIT_STRESS",
     "state_zh": "信用壓力",
     "candidate_state": "ROTATION",
     "candidate_state_zh": "板塊輪動",
     "previous_state": "CREDIT_STRESS",
-    "transition_note": "降級需連續改善 3 天，目前僅 1 天",
-    "risk_score": 37.3,
-    "risk_percentile_180d": 70.0,
-    "risk_rank_180d": 55,
+    "transition_note": "降級需連續改善 3 天，目前僅 0 天",
+    "risk_score": 41.9,
+    "risk_percentile_180d": 79.4,
+    "risk_rank_180d": 38,
     "history_count": 180,
-    "accumulation_score": 59.5,
+    "accumulation_score": 62.8,
     "momentum": {
-      "1d": -24.5,
-      "3d": -3.1,
-      "5d": -23.5,
-      "slope_5d": -1.8,
-      "slope_10d": 0.82,
+      "1d": 4.6,
+      "3d": 1.5,
+      "5d": -15.1,
+      "slope_5d": -0.01,
+      "slope_10d": 0.9,
       "label": "持續改善"
     },
     "velocity": {
-      "daily_velocity_3d": 2.0,
-      "daily_velocity_5d": -1.8,
-      "daily_velocity_10d": 0.82,
-      "acceleration": 1.18,
-      "positive_days_5": 1,
-      "non_decline_days_7": 3,
-      "range_7d": 28.5,
-      "off_30d_peak": -27.9,
-      "label": "快速改善"
+      "daily_velocity_3d": -9.95,
+      "daily_velocity_5d": -0.01,
+      "daily_velocity_10d": 0.9,
+      "acceleration": -10.85,
+      "positive_days_5": 2,
+      "non_decline_days_7": 4,
+      "range_7d": 24.5,
+      "off_30d_peak": -23.3,
+      "label": "橫向震盪"
     },
     "persistence": {
-      "above_observe": 61,
-      "above_alert": 7,
-      "above_risk_off": 2,
-      "non_decreasing": 0,
-      "strictly_rising": 0,
-      "improving": 1
+      "above_observe": 62,
+      "above_alert": 8,
+      "above_risk_off": 8,
+      "non_decreasing": 1,
+      "strictly_rising": 1,
+      "improving": 0
     },
     "breadth": {
       "active_modules": [
@@ -185,9 +185,9 @@
         {
           "column": "credit_score",
           "label": "信用市場",
-          "score": 3.9,
+          "score": 6.9,
           "max": 20.0,
-          "ratio_pct": 19.5,
+          "ratio_pct": 34.5,
           "active": false
         },
         {
@@ -201,17 +201,17 @@
         {
           "column": "dollar_rates_score",
           "label": "美元與利率",
-          "score": 3.3,
+          "score": 2.4,
           "max": 20.0,
-          "ratio_pct": 16.5,
+          "ratio_pct": 12.0,
           "active": false
         },
         {
           "column": "risk_asset_score",
           "label": "風險資產撤退",
-          "score": 15.1,
+          "score": 17.6,
           "max": 25.0,
-          "ratio_pct": 60.4,
+          "ratio_pct": 70.4,
           "active": true
         },
         {
@@ -227,11 +227,11 @@
     "reasons": {
       "summary": "信用市場已成為主要壓力來源。",
       "confirmed": [
-        "風險資產撤退 15.1/25 已升溫",
+        "風險資產撤退 17.6/25 已升溫",
         "波動率 15.0/15 已升溫",
         "風險廣度達 40%",
         "3 條價格輪動路徑達初步確認以上",
-        "風險≥15分已持續 61 天"
+        "風險≥15分已持續 62 天"
       ],
       "blockers": [
         "同步惡化廣度僅 40%",
@@ -240,16 +240,16 @@
       ]
     },
     "recent_scores": [
-      45.5,
       37.4,
-      18.0,
+      17.9,
       51.8,
       60.8,
       57.0,
       40.4,
-      33.3,
+      40.4,
       61.8,
-      37.3
+      37.3,
+      41.9
     ],
     "contagion": {
       "stage": 1,
@@ -269,35 +269,35 @@
       "paths": [
         {
           "from": "台灣半導體",
-          "to": "中國創業板",
-          "from_change_20d": -28.081303496899245,
-          "to_change_20d": 5.902140672782874,
-          "spread_20d": 34.0,
-          "strength_percentile": 98.5,
+          "to": "必需消費",
+          "from_change_20d": -32.746797204030784,
+          "to_change_20d": 2.1600727603456216,
+          "spread_20d": 34.9,
+          "strength_percentile": 100.0,
           "stars": 5,
-          "level": "高度確認",
-          "evidence_score": 8,
+          "level": "初步確認",
+          "evidence_score": 5,
           "max_evidence_score": 8,
           "checks": [
             "1D✓",
             "5D✓",
             "20D✓",
-            "1D✓",
-            "5D✓",
+            "1D×",
+            "5D×",
             "20D✓"
           ],
-          "freshness_ok": true,
+          "freshness_ok": false,
           "flow_type": "PRICE_ROTATION_PROXY",
           "true_flow_confirmed": false,
           "disclaimer": "相對價格輪動代理，不等同ETF申購贖回或實際資金轉帳。"
         },
         {
           "from": "半導體",
-          "to": "必需消費",
+          "to": "公用事業",
           "from_change_20d": -19.02118657002041,
-          "to_change_20d": 2.1600727603456216,
-          "spread_20d": 21.2,
-          "strength_percentile": 63.6,
+          "to_change_20d": 1.0810810810810922,
+          "spread_20d": 20.1,
+          "strength_percentile": 64.1,
           "stars": 3,
           "level": "推測",
           "evidence_score": 4,
@@ -317,22 +317,22 @@
         },
         {
           "from": "科技",
-          "to": "公用事業",
+          "to": "中國創業板",
           "from_change_20d": -13.755903821382564,
-          "to_change_20d": 1.0810810810810922,
-          "spread_20d": 14.8,
+          "to_change_20d": 0.0,
+          "spread_20d": 13.8,
           "strength_percentile": 98.4,
           "stars": 5,
           "level": "初步確認",
-          "evidence_score": 5,
+          "evidence_score": 6,
           "max_evidence_score": 8,
           "checks": [
             "1D✓",
             "5D✓",
             "20D✓",
-            "1D×",
-            "5D×",
-            "20D✓"
+            "1D✓",
+            "5D✓",
+            "20D×"
           ],
           "freshness_ok": false,
           "flow_type": "PRICE_ROTATION_PROXY",
@@ -345,7 +345,7 @@
           "from_change_20d": -8.873905714751773,
           "to_change_20d": -0.5220949421449239,
           "spread_20d": 8.4,
-          "strength_percentile": 85.2,
+          "strength_percentile": 86.0,
           "stars": 4,
           "level": "初步確認",
           "evidence_score": 5,
@@ -390,8 +390,8 @@
       ],
       "counts": {
         "推測": 2,
-        "初步確認": 2,
-        "高度確認": 1
+        "初步確認": 3,
+        "高度確認": 0
       },
       "confirmed_paths": 3,
       "all_price_proxy": true
@@ -405,34 +405,33 @@
       {
         "id": "china_2015",
         "label": "2015 中國與全球製造衝擊",
-        "similarity_pct": 80.2,
-        "trajectory_pct": 76.1,
-        "component_pct": 87.7,
+        "similarity_pct": 77.0,
+        "trajectory_pct": 74.7,
+        "component_pct": 81.2,
         "coverage_pct": 100.0,
         "comparison_mode": "TRAJECTORY_AND_COMPONENTS",
         "reference_start": "2015-06-01",
         "reference_end": "2016-02-29",
-        "phase_day": 49,
-        "phase_date": "2015-08-12",
+        "phase_day": 50,
+        "phase_date": "2015-08-13",
         "next_stage": {
           "available": true,
           "horizon_days": 10,
           "direction": "明顯惡化",
-          "risk_change": 14.3,
-          "max_worsening": 14.3,
+          "risk_change": 13.6,
+          "max_worsening": 14.6,
           "leading_components": [
-            "波動率+8.8",
-            "風險資產撤退+4.3",
-            "美元與利率+1.2"
+            "波動率+8.9",
+            "風險資產撤退+4.6"
           ]
         }
       },
       {
         "id": "dotcom_2000",
         "label": "2000 科技泡沫",
-        "similarity_pct": 76.4,
-        "trajectory_pct": 70.5,
-        "component_pct": 87.5,
+        "similarity_pct": 75.2,
+        "trajectory_pct": 70.7,
+        "component_pct": 83.6,
         "coverage_pct": 100.0,
         "comparison_mode": "TRAJECTORY_AND_COMPONENTS",
         "reference_start": "2000-02-01",
@@ -451,26 +450,25 @@
         }
       },
       {
-        "id": "gfc_2008",
-        "label": "2008 全球金融海嘯",
-        "similarity_pct": 76.0,
-        "trajectory_pct": 64.1,
-        "component_pct": 98.1,
+        "id": "covid_2020",
+        "label": "2020 疫情流動性危機",
+        "similarity_pct": 75.2,
+        "trajectory_pct": 64.6,
+        "component_pct": 95.0,
         "coverage_pct": 100.0,
         "comparison_mode": "TRAJECTORY_AND_COMPONENTS",
-        "reference_start": "2008-07-01",
-        "reference_end": "2008-11-30",
-        "phase_day": 72,
-        "phase_date": "2008-10-04",
+        "reference_start": "2020-01-15",
+        "reference_end": "2020-04-30",
+        "phase_day": 20,
+        "phase_date": "2020-02-27",
         "next_stage": {
           "available": true,
           "horizon_days": 10,
-          "direction": "明顯惡化",
-          "risk_change": 17.9,
-          "max_worsening": 27.1,
+          "direction": "高檔震盪",
+          "risk_change": 0.1,
+          "max_worsening": 1.2,
           "leading_components": [
-            "美元與利率+15.5",
-            "風險資產撤退+2.8"
+            "風險資產撤退+1.1"
           ]
         }
       }
@@ -513,35 +511,35 @@
     "paths": [
       {
         "from": "台灣半導體",
-        "to": "中國創業板",
-        "from_change_20d": -28.081303496899245,
-        "to_change_20d": 5.902140672782874,
-        "spread_20d": 34.0,
-        "strength_percentile": 98.5,
+        "to": "必需消費",
+        "from_change_20d": -32.746797204030784,
+        "to_change_20d": 2.1600727603456216,
+        "spread_20d": 34.9,
+        "strength_percentile": 100.0,
         "stars": 5,
-        "level": "高度確認",
-        "evidence_score": 8,
+        "level": "初步確認",
+        "evidence_score": 5,
         "max_evidence_score": 8,
         "checks": [
           "1D✓",
           "5D✓",
           "20D✓",
-          "1D✓",
-          "5D✓",
+          "1D×",
+          "5D×",
           "20D✓"
         ],
-        "freshness_ok": true,
+        "freshness_ok": false,
         "flow_type": "PRICE_ROTATION_PROXY",
         "true_flow_confirmed": false,
         "disclaimer": "相對價格輪動代理，不等同ETF申購贖回或實際資金轉帳。"
       },
       {
         "from": "半導體",
-        "to": "必需消費",
+        "to": "公用事業",
         "from_change_20d": -19.02118657002041,
-        "to_change_20d": 2.1600727603456216,
-        "spread_20d": 21.2,
-        "strength_percentile": 63.6,
+        "to_change_20d": 1.0810810810810922,
+        "spread_20d": 20.1,
+        "strength_percentile": 64.1,
         "stars": 3,
         "level": "推測",
         "evidence_score": 4,
@@ -561,22 +559,22 @@
       },
       {
         "from": "科技",
-        "to": "公用事業",
+        "to": "中國創業板",
         "from_change_20d": -13.755903821382564,
-        "to_change_20d": 1.0810810810810922,
-        "spread_20d": 14.8,
+        "to_change_20d": 0.0,
+        "spread_20d": 13.8,
         "strength_percentile": 98.4,
         "stars": 5,
         "level": "初步確認",
-        "evidence_score": 5,
+        "evidence_score": 6,
         "max_evidence_score": 8,
         "checks": [
           "1D✓",
           "5D✓",
           "20D✓",
-          "1D×",
-          "5D×",
-          "20D✓"
+          "1D✓",
+          "5D✓",
+          "20D×"
         ],
         "freshness_ok": false,
         "flow_type": "PRICE_ROTATION_PROXY",
@@ -589,7 +587,7 @@
         "from_change_20d": -8.873905714751773,
         "to_change_20d": -0.5220949421449239,
         "spread_20d": 8.4,
-        "strength_percentile": 85.2,
+        "strength_percentile": 86.0,
         "stars": 4,
         "level": "初步確認",
         "evidence_score": 5,
@@ -634,8 +632,8 @@
     ],
     "counts": {
       "推測": 2,
-      "初步確認": 2,
-      "高度確認": 1
+      "初步確認": 3,
+      "高度確認": 0
     },
     "confirmed_paths": 3,
     "all_price_proxy": true
@@ -648,8 +646,8 @@
           "label": "美國半導體",
           "change_pct": -2.75,
           "latest_date": "2026-11-20",
-          "freshness": "STALE",
-          "lag_hours": 48.8,
+          "freshness": "VERY_STALE",
+          "lag_hours": 73.2,
           "market_session": "US_CLOSE"
         },
         {
@@ -657,8 +655,8 @@
           "label": "Nasdaq 100",
           "change_pct": -2.19,
           "latest_date": "2026-11-20",
-          "freshness": "STALE",
-          "lag_hours": 48.8,
+          "freshness": "VERY_STALE",
+          "lag_hours": 73.2,
           "market_session": "US_CLOSE"
         },
         {
@@ -666,8 +664,8 @@
           "label": "美股大盤",
           "change_pct": -1.96,
           "latest_date": "2026-11-20",
-          "freshness": "STALE",
-          "lag_hours": 48.8,
+          "freshness": "VERY_STALE",
+          "lag_hours": 73.2,
           "market_session": "US_CLOSE"
         },
         {
@@ -675,8 +673,8 @@
           "label": "金融",
           "change_pct": -1.49,
           "latest_date": "2026-11-20",
-          "freshness": "STALE",
-          "lag_hours": 48.8,
+          "freshness": "VERY_STALE",
+          "lag_hours": 73.2,
           "market_session": "US_CLOSE"
         },
         {
@@ -684,17 +682,17 @@
           "label": "必需消費",
           "change_pct": -1.45,
           "latest_date": "2026-11-20",
-          "freshness": "STALE",
-          "lag_hours": 48.8,
+          "freshness": "VERY_STALE",
+          "lag_hours": 73.2,
           "market_session": "US_CLOSE"
         },
         {
           "factor": "XLE_ENERGY",
           "label": "能源",
-          "change_pct": -0.5,
+          "change_pct": 3.39,
           "latest_date": "2026-11-20",
-          "freshness": "STALE",
-          "lag_hours": 48.8,
+          "freshness": "VERY_STALE",
+          "lag_hours": 73.2,
           "market_session": "US_CLOSE"
         }
       ],
@@ -731,13 +729,13 @@
     "session_info": {
       "US_CLOSE": {
         "latest_market_date": "2026-11-20",
-        "run_date": "2026-11-22",
-        "no_new_session": true,
-        "session_note": "非交易日或尚無新收盤，沿用最近有效交易日"
+        "run_date": "2026-11-23",
+        "no_new_session": false,
+        "session_note": "最新完成交易時段"
       },
       "ASIA_CLOSE": {
         "latest_market_date": "",
-        "run_date": "2026-11-22",
+        "run_date": "2026-11-23",
         "no_new_session": true,
         "session_note": "非交易日或尚無新收盤，沿用最近有效交易日"
       }
@@ -746,7 +744,7 @@
       {
         "factor": "TW_SEMICONDUCTOR",
         "label": "台灣半導體",
-        "change_pct": -21.04,
+        "change_pct": -27.92,
         "latest_date": "",
         "freshness": "UNKNOWN",
         "lag_hours": null,
@@ -766,8 +764,8 @@
         "label": "美國半導體",
         "change_pct": -7.6,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -775,8 +773,8 @@
         "label": "金融",
         "change_pct": -5.28,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -784,8 +782,8 @@
         "label": "Nasdaq 100",
         "change_pct": -5.13,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -793,8 +791,8 @@
         "label": "美股大盤",
         "change_pct": -5.1,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -802,17 +800,17 @@
         "label": "必需消費",
         "change_pct": -2.7,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
         "factor": "XLE_ENERGY",
         "label": "能源",
-        "change_pct": 1.86,
+        "change_pct": 2.31,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -829,7 +827,7 @@
       {
         "factor": "TW_SEMICONDUCTOR",
         "label": "台灣半導體",
-        "change_pct": -28.08,
+        "change_pct": -32.75,
         "latest_date": "",
         "freshness": "UNKNOWN",
         "lag_hours": null,
@@ -840,8 +838,8 @@
         "label": "美國半導體",
         "change_pct": -19.02,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -849,8 +847,8 @@
         "label": "科技",
         "change_pct": -13.76,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -858,8 +856,8 @@
         "label": "黃金",
         "change_pct": -8.87,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -867,17 +865,8 @@
         "label": "新興市場",
         "change_pct": -8.2,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
-        "market_session": "US_CLOSE"
-      },
-      {
-        "factor": "XLE_ENERGY",
-        "label": "能源",
-        "change_pct": -6.53,
-        "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -885,8 +874,17 @@
         "label": "美股大盤",
         "change_pct": -6.47,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
+        "market_session": "US_CLOSE"
+      },
+      {
+        "factor": "XLE_ENERGY",
+        "label": "能源",
+        "change_pct": -6.22,
+        "latest_date": "2026-11-20",
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -894,8 +892,8 @@
         "label": "美國小型股",
         "change_pct": -4.61,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -903,15 +901,15 @@
         "label": "中國大型股ADR代理",
         "change_pct": -1.61,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
         "factor": "TLT",
         "label": "長天期美債",
         "change_pct": -1.15,
-        "latest_date": "2026-11-22",
+        "latest_date": "2026-11-23",
         "freshness": "UNKNOWN",
         "lag_hours": null,
         "market_session": "US_CLOSE"
@@ -921,8 +919,8 @@
         "label": "金融",
         "change_pct": -0.79,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -930,8 +928,8 @@
         "label": "高收益債ETF",
         "change_pct": -0.67,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -939,17 +937,26 @@
         "label": "投資級債ETF",
         "change_pct": -0.52,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
+      },
+      {
+        "factor": "CN_CHINEXT",
+        "label": "中國創業板代理",
+        "change_pct": 0.0,
+        "latest_date": "",
+        "freshness": "UNKNOWN",
+        "lag_hours": null,
+        "market_session": "ASIA_CLOSE"
       },
       {
         "factor": "XLU_UTILITIES",
         "label": "公用事業",
         "change_pct": 1.08,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -957,25 +964,16 @@
         "label": "必需消費",
         "change_pct": 2.16,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
-      },
-      {
-        "factor": "CN_CHINEXT",
-        "label": "中國創業板代理",
-        "change_pct": 5.9,
-        "latest_date": "",
-        "freshness": "UNKNOWN",
-        "lag_hours": null,
-        "market_session": "ASIA_CLOSE"
       }
     ],
     "medium_term_60d": [
       {
         "factor": "TW_SEMICONDUCTOR",
         "label": "台灣半導體",
-        "change_pct": -28.42,
+        "change_pct": -30.64,
         "latest_date": "",
         "freshness": "UNKNOWN",
         "lag_hours": null,
@@ -986,8 +984,8 @@
         "label": "美國半導體",
         "change_pct": -19.97,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -995,8 +993,8 @@
         "label": "黃金",
         "change_pct": -17.93,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1004,8 +1002,8 @@
         "label": "新興市場",
         "change_pct": -15.32,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1013,8 +1011,8 @@
         "label": "科技",
         "change_pct": -12.38,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1022,8 +1020,8 @@
         "label": "中國大型股ADR代理",
         "change_pct": -10.48,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1031,8 +1029,8 @@
         "label": "美國小型股",
         "change_pct": -9.9,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1040,8 +1038,8 @@
         "label": "美股大盤",
         "change_pct": -6.21,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1049,8 +1047,8 @@
         "label": "金融",
         "change_pct": -4.75,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1058,8 +1056,8 @@
         "label": "高收益債ETF",
         "change_pct": -2.39,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1067,15 +1065,15 @@
         "label": "投資級債ETF",
         "change_pct": -1.48,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
         "factor": "TLT",
         "label": "長天期美債",
         "change_pct": 0.29,
-        "latest_date": "2026-11-22",
+        "latest_date": "2026-11-23",
         "freshness": "UNKNOWN",
         "lag_hours": null,
         "market_session": "US_CLOSE"
@@ -1085,17 +1083,17 @@
         "label": "公用事業",
         "change_pct": 1.54,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
         "factor": "XLE_ENERGY",
         "label": "能源",
-        "change_pct": 2.36,
+        "change_pct": 2.11,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       },
       {
@@ -1103,8 +1101,8 @@
         "label": "必需消費",
         "change_pct": 6.09,
         "latest_date": "2026-11-20",
-        "freshness": "STALE",
-        "lag_hours": 48.8,
+        "freshness": "VERY_STALE",
+        "lag_hours": 73.2,
         "market_session": "US_CLOSE"
       }
     ],
